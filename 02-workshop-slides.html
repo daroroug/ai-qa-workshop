@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Enhanced QA Workshop — Slideshow</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+/* ─── Slide Container ─── */
+#slideshow {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+}
+
+.slide {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 40px 56px;
+  overflow: hidden;
+}
+.slide.active { display: flex; }
+
+.slide-inner {
+  width: 100%; max-width: 900px;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+/* ─── Chrome ─── */
+#top-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 44px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(15,23,42,0.85);
+  backdrop-filter: blur(6px);
+  z-index: 50;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+#module-label {
+  font-size: 0.75rem; color: #475569; letter-spacing: 0.04em;
+  text-transform: uppercase; font-weight: 600;
+}
+
+#bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(15,23,42,0.85);
+  backdrop-filter: blur(6px);
+  z-index: 50;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+#progress-bar-wrap {
+  position: fixed; bottom: 40px; left: 0; right: 0; height: 3px;
+  background: #1e293b; z-index: 51;
+}
+#progress-bar {
+  height: 100%; background: #3b82f6;
+  transition: width 0.25s ease;
+}
+
+#module-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.75rem; color: #64748b; font-weight: 600;
+}
+#module-badge .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #3b82f6;
+}
+
+#slide-counter {
+  font-size: 0.8rem; color: #64748b; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Slide Types ─── */
+
+/* Title slide */
+.slide-title {
+  background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+  text-align: center;
+}
+.slide-title .main-title {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800; color: #f1f5f9;
+  line-height: 1.15;
+  margin-bottom: 0.5rem;
+}
+.slide-title .subtitle {
+  font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+  color: #94a3b8; margin-bottom: 2rem;
+}
+.slide-title .opening-quote {
+  max-width: 680px; margin: 0 auto;
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 10px; padding: 1.25rem 1.75rem;
+  font-size: 0.95rem; color: #93c5fd;
+  font-style: italic; line-height: 1.65;
+}
+
+/* Section divider */
+.slide-section {
+  text-align: center;
+}
+.slide-section.mod-blue {
+  background: linear-gradient(145deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+}
+.slide-section.mod-purple {
+  background: linear-gradient(145deg, #0f172a 0%, #2d1b69 50%, #0f172a 100%);
+}
+.slide-section.mod-green {
+  background: linear-gradient(145deg, #0f172a 0%, #0d2d1f 50%, #0f172a 100%);
+}
+.slide-section.mod-amber {
+  background: linear-gradient(145deg, #0f172a 0%, #2d1b00 50%, #0f172a 100%);
+}
+.mod-number-badge {
+  display: inline-block;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.3rem 0.8rem;
+  border-radius: 20px; margin-bottom: 1.5rem;
+}
+.mod-blue .mod-number-badge { background: rgba(59,130,246,0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+.mod-purple .mod-number-badge { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.4); }
+.mod-green .mod-number-badge { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+.mod-amber .mod-number-badge { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
+
+.section-title {
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  font-weight: 800; color: #f1f5f9;
+  line-height: 1.2; margin-bottom: 1rem;
+}
+.section-time-badge {
+  display: inline-block;
+  font-size: 0.85rem; color: #94a3b8;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; padding: 0.3rem 1rem;
+}
+
+/* Content slide */
+.slide-content {
+  background: #0f172a;
+}
+.slide-title-bar {
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  font-weight: 700; color: #e2e8f0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #3b82f6;
+  margin-bottom: 1.5rem;
+  line-height: 1.25;
+}
+
+/* Exercise slide */
+.slide-exercise {
+  background: #0a1f14;
+  border-left: 4px solid #10b981;
+}
+.slide-exercise .slide-inner {
+  padding-left: 1.5rem;
+}
+.exercise-badge {
+  display: inline-block;
+  font-size: 0.7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.25rem 0.7rem; border-radius: 20px;
+  margin-bottom: 1rem;
+}
+.badge-junior { background: rgba(59,130,246,0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+.badge-senior { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.4); }
+.badge-all { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+
+/* Takeaway slide */
+.slide-takeaway {
+  background: #1c1004;
+  text-align: center;
+}
+.takeaway-icon {
+  font-size: 3rem; margin-bottom: 1rem; display: block;
+  opacity: 0.6;
+}
+.takeaway-quote {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  font-weight: 700; color: #fbbf24;
+  font-style: italic; line-height: 1.4;
+  margin-bottom: 1.5rem;
+  max-width: 700px; margin-left: auto; margin-right: auto;
+}
+
+/* Lunch / misc */
+.slide-lunch { background: linear-gradient(145deg, #0f172a, #1a1a2e); }
+
+/* ─── Content Elements ─── */
+
+h4 {
+  font-size: 1rem; font-weight: 700; color: #93c5fd;
+  margin: 1.25rem 0 0.5rem;
+}
+
+ul, ol {
+  padding-left: 1.4rem; margin-bottom: 1rem;
+}
+li { margin-bottom: 0.35rem; line-height: 1.55; color: #cbd5e1; }
+ul li::marker { color: #3b82f6; }
+ol li::marker { color: #3b82f6; font-weight: 700; }
+
+p { margin-bottom: 0.75rem; color: #cbd5e1; line-height: 1.6; }
+
+strong { color: #e2e8f0; font-weight: 700; }
+
+/* Code blocks */
+pre {
+  background: #0d1117;
+  border-left: 3px solid #3b82f6;
+  border-radius: 6px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 320px;
+  margin: 0.75rem 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+code {
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+  color: #a5f3fc;
+}
+pre code { color: #a5f3fc; font-size: inherit; }
+
+/* Inline code */
+p code, li code, td code {
+  background: #1e293b; color: #a5f3fc;
+  padding: 0.1em 0.35em; border-radius: 3px;
+  font-size: 0.88em;
+}
+
+/* Tables */
+table {
+  width: 100%; border-collapse: collapse;
+  margin: 0.75rem 0; font-size: 0.85rem;
+}
+thead th {
+  background: #1e3a5f; color: #93c5fd;
+  padding: 0.55rem 0.75rem; text-align: left;
+  font-weight: 700; font-size: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+tbody tr:nth-child(odd) td { background: #1e293b; }
+tbody tr:nth-child(even) td { background: #162032; }
+tbody td {
+  padding: 0.5rem 0.75rem; color: #cbd5e1;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: top;
+}
+
+/* Blockquotes — presenter cues */
+blockquote {
+  background: #1a2744;
+  border-left: 3px solid #93c5fd;
+  border-radius: 0 6px 6px 0;
+  padding: 0.6rem 1rem;
+  margin: 1rem 0 0;
+  font-style: italic;
+  color: #bfdbfe;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+blockquote::before {
+  content: "💬 ";
+  font-style: normal;
+  font-size: 0.75rem;
+}
+
+/* Learning goals box */
+.goals-box {
+  background: #1e293b;
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.goals-box ol { margin: 0; }
+
+/* ─── Overview grid ─── */
+#overview {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(5,10,20,0.96);
+  z-index: 200;
+  overflow-y: auto;
+  padding: 48px 32px;
+}
+#overview.visible { display: block; }
+#overview-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 28px;
+}
+#overview-header h2 {
+  font-size: 1rem; color: #94a3b8; font-weight: 600;
+}
+#overview-close {
+  background: none; border: 1px solid #334155;
+  color: #94a3b8; cursor: pointer;
+  padding: 0.35rem 0.9rem; border-radius: 6px;
+  font-size: 0.8rem; transition: all 0.15s;
+}
+#overview-close:hover { background: #1e293b; color: #e2e8f0; }
+
+#overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.thumb {
+  background: #1e293b;
+  border: 2px solid #334155;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+  min-height: 110px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.thumb:hover { border-color: #3b82f6; transform: translateY(-2px); }
+.thumb.current { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
+.thumb-num {
+  font-size: 0.65rem; color: #64748b;
+  font-weight: 700; margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.thumb-title {
+  font-size: 0.72rem; color: #94a3b8;
+  line-height: 1.35; flex: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+.thumb-type-bar {
+  height: 3px; border-radius: 2px; margin-bottom: 6px;
+}
+.type-title .thumb-type-bar { background: #6366f1; }
+.type-section .thumb-type-bar { background: #3b82f6; }
+.type-exercise .thumb-type-bar { background: #10b981; }
+.type-takeaway .thumb-type-bar { background: #f59e0b; }
+.type-content .thumb-type-bar { background: #334155; }
+
+/* Nav hint */
+#nav-hint {
+  position: fixed; bottom: 50px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem; color: #334155;
+  pointer-events: none;
+  transition: opacity 1s;
+}
+
+/* Animations */
+.slide.active {
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- Top chrome -->
+<div id="top-bar">
+  <div id="module-label">AI-Enhanced Quality Assurance in Software Engineering</div>
+</div>
+
+<!-- Progress bar -->
+<div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+
+<!-- Bottom chrome -->
+<div id="bottom-bar">
+  <div id="module-badge"><span class="dot"></span><span id="module-badge-text">Workshop</span></div>
+  <div id="slide-counter">1 / 1</div>
+</div>
+
+<!-- Slideshow -->
+<div id="slideshow">
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 1 — TITLE
+════════════════════════════════════════════ -->
+<div class="slide slide-title active" data-type="title" data-module="Workshop" data-module-color="blue">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="main-title">AI-Enhanced Quality Assurance<br>in Software Engineering</div>
+    <div class="subtitle">Workshop — 8 Hours &nbsp;|&nbsp; 9 Participants &nbsp;|&nbsp; Mixed Juniors + Seniors</div>
+    <div class="opening-quote">
+      "Today we ship better software by making quality unavoidable — not optional. Every tool, every exercise, every conversation in this room is aimed at one outcome: fewer bugs reaching production."
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 2 — SECTION: Welcome + Setup
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-blue" data-type="section" data-module="Welcome + Setup" data-module-color="blue">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">08:30</div>
+    <div class="section-title">Welcome + Setup</div>
+    <div class="section-time-badge">30 minutes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 3 — Participant Check
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Welcome + Setup" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Participant Check</div>
+    <ul>
+      <li>Introduce yourself: name, team, one word for how you feel about testing today</li>
+      <li>We will build on a real e-commerce API called <strong>ShopAPI</strong> — products, cart, checkout</li>
+      <li>Every module has a <strong>Junior</strong> track and a <strong>Senior stretch</strong> — do the one that fits you right now</li>
+      <li>The only bad exercise is one you don't start</li>
+    </ul>
+    <blockquote>Before we touch code: laptops open. Let's verify your environment is clean.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 4 — Environment Verification
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Welcome + Setup" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Environment Verification</div>
+    <pre><code>node --version       # need >= 20
+npm --version        # need >= 10
+npx vitest --version # should print a version
+npx playwright --version
+cd workshop/shop-api-starter &amp;&amp; npm install</code></pre>
+    <ul>
+      <li>If you see errors, flag me now — do not wait</li>
+      <li>Keep the terminal open; we will use it all day</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 5 — Schedule Overview
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Welcome + Setup" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Schedule Overview</div>
+    <table>
+      <thead><tr><th>Time</th><th>Block</th><th>Duration</th></tr></thead>
+      <tbody>
+        <tr><td>08:30</td><td>Welcome + setup</td><td>30 min</td></tr>
+        <tr><td>09:00</td><td>Module 1: Unit Testing with Vitest</td><td>75 min</td></tr>
+        <tr><td>10:15</td><td>Break</td><td>15 min</td></tr>
+        <tr><td>10:30</td><td>Module 2: TDD + AI (Red-Green-Refactor)</td><td>75 min</td></tr>
+        <tr><td>11:45</td><td>Lunch prep</td><td>15 min</td></tr>
+        <tr><td>12:00</td><td>Lunch</td><td>60 min</td></tr>
+        <tr><td>13:00</td><td>Module 3: Coverage + Mutation Testing</td><td>60 min</td></tr>
+        <tr><td>14:00</td><td>Module 4: Code Reviews + Pre-commit Hooks</td><td>60 min</td></tr>
+        <tr><td>15:00</td><td>Break</td><td>15 min</td></tr>
+        <tr><td>15:15</td><td>Module 5: Playwright + Claude Code</td><td>75 min</td></tr>
+        <tr><td>16:30</td><td>Module 6: AI Hallucinations + Safeguards</td><td>30 min</td></tr>
+        <tr><td>17:00</td><td>Capstone Presentations + Feedback</td><td>45 min</td></tr>
+        <tr><td>17:45</td><td>Close</td><td>15 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 6 — SECTION: Module 1
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-blue" data-type="section" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">Module 1</div>
+    <div class="section-title">Unit Testing with Vitest</div>
+    <div class="section-time-badge">09:00 — 75 minutes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 7 — Module 1 Learning Goals
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Unit Testing with Vitest — Learning Goals</div>
+    <div class="goals-box">
+      <ol>
+        <li>Write, run, and organize unit tests using Vitest</li>
+        <li>Apply the <strong>AAA pattern</strong> (Arrange-Act-Assert) consistently</li>
+        <li>Name tests so they read as executable specifications</li>
+        <li>Connect tests to a CI gate so broken code cannot merge</li>
+      </ol>
+    </div>
+    <blockquote>This module is about what tests actually are and why they matter more than most teams treat them.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 8 — What Is a Unit Test?
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">What Is a Unit Test?</div>
+    <ul>
+      <li>A <strong>unit test</strong> verifies the smallest independently testable piece of code</li>
+      <li>It runs in memory — no network, no database, no file system</li>
+      <li>It runs in milliseconds — 1000 tests should finish in under 3 seconds</li>
+      <li>It tells you exactly what broke and where — not just "something is wrong"</li>
+    </ul>
+    <h4>Why test at all?</h4>
+    <table>
+      <thead><tr><th>Bug found during…</th><th>Average cost to fix</th></tr></thead>
+      <tbody>
+        <tr><td>Development (same day)</td><td>$80</td></tr>
+        <tr><td>Code review</td><td>$240</td></tr>
+        <tr><td>QA cycle</td><td>$960</td></tr>
+        <tr><td>Production</td><td>$7,600+</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.75rem;color:#475569;">Source: IBM NIST, 2022. The ratio is roughly 1 : 3 : 12 : 95.</p>
+    <blockquote>The question is not 'should we write tests.' The question is 'do we want to find bugs while they're cheap or after they're expensive.'</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 9 — Why Multiple Test Runners?
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Why Are There Multiple Test Runners?</div>
+    <table>
+      <thead><tr><th>Runner</th><th>Year</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Jest</strong></td><td>2014</td><td>Industry standard for years; CJS-first; slow cold start</td></tr>
+        <tr><td><strong>node:test</strong></td><td>2023</td><td>Built into Node 18+; no install needed; minimal API</td></tr>
+        <tr><td><strong>Vitest</strong></td><td>2022</td><td>ESM-native; Vite config reuse; fastest cold start; Jest-compatible API</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>We use <strong>Vitest</strong> because ShopAPI uses ESM modules</li>
+      <li>If you use Jest at work: 95% of the API is identical</li>
+      <li><code>describe</code>, <code>it</code>, <code>test</code>, <code>expect</code>, <code>beforeEach</code>, <code>afterEach</code> — same in all three</li>
+    </ul>
+    <blockquote>You do not need to switch your existing projects. The concepts travel.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 10 — The AAA Pattern
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The AAA Pattern</div>
+    <p>Every test has exactly three parts:</p>
+    <pre><code>it('returns the product when given a valid id', () => {
+  // ARRANGE — set up the world
+  const id = 'prod-001';
+
+  // ACT — call the unit under test
+  const result = getProductById(id);
+
+  // ASSERT — verify the outcome
+  expect(result.id).toBe('prod-001');
+  expect(result.name).toBe('Blue Hoodie');
+});</code></pre>
+    <ul>
+      <li><strong>Arrange</strong>: create inputs, set up fakes, seed state</li>
+      <li><strong>Act</strong>: one call — always one call per test</li>
+      <li><strong>Assert</strong>: one thing per test (or closely related things)</li>
+    </ul>
+    <blockquote>If your Act section has more than one line, you're probably testing two things.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 11 — Good Test Names
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">What Makes a Good Test Name?</div>
+    <p>A good test name is a complete English sentence that describes the behavior:</p>
+    <table>
+      <thead><tr><th>Bad</th><th>Good</th></tr></thead>
+      <tbody>
+        <tr><td><code>test1</code></td><td>returns product when id exists</td></tr>
+        <tr><td><code>testGetProduct</code></td><td>throws NotFoundError when id is unknown</td></tr>
+        <tr><td><code>price test</code></td><td>throws when price is negative</td></tr>
+        <tr><td><code>update</code></td><td>preserves other fields when updating price</td></tr>
+      </tbody>
+    </table>
+    <p>Rule: <strong>read the test name aloud — it should describe the behavior, not the code.</strong></p>
+    <blockquote>If your test fails in CI and someone reads the name in a Slack alert, they should know what broke without opening the file.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 12 — Watch Mode + Coverage
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Watch Mode + Coverage Mode</div>
+    <pre><code># Run all tests once
+npx vitest run
+
+# Watch mode — re-runs on file save
+npx vitest
+
+# Coverage report
+npx vitest run --coverage
+# → Open coverage/index.html in browser</code></pre>
+    <ul>
+      <li><strong>Watch mode</strong> is for development — keep it running while you code</li>
+      <li><strong>Coverage mode</strong> shows which lines your tests never execute</li>
+      <li>Do not commit with coverage below your team's threshold</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 13 — Demo: First Test in Vitest
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Demo: First Test in Vitest</div>
+    <blockquote>Let me show you the full cycle before you do it yourself.</blockquote>
+    <pre><code>cd workshop/shop-api-starter
+cat src/product.mjs</code></pre>
+    <pre><code>// src/product.mjs (shown on screen)
+export function getProductById(id) {
+  return products.find(p =&gt; p.id === id) ?? null;
+}
+export function updateProductPrice(id, newPrice) {
+  if (newPrice &lt; 0) throw new Error('Price cannot be negative');
+  const product = products.find(p =&gt; p.id === id);
+  if (!product) return false;
+  product.price = newPrice;
+  return true;
+}</code></pre>
+    <pre><code>// tests/product.test.mjs — write this live
+import { describe, it, expect } from 'vitest';
+import { getProductById } from '../src/product.mjs';
+
+describe('getProductById', () =&gt; {
+  it('returns the correct product name for a valid id', () =&gt; {
+    const result = getProductById('prod-001');
+    expect(result.name).toBe('Blue Hoodie');
+  });
+  it('returns null when the id does not exist', () =&gt; {
+    const result = getProductById('does-not-exist');
+    expect(result).toBeNull();
+  });
+});</code></pre>
+    <pre><code>npx vitest run
+# → show green
+# → rename 'Blue Hoodie' to 'Red Hoodie' in source — show red
+# → npx vitest   (watch mode — re-runs on save)</code></pre>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 14 — Exercise A Junior
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-junior">Junior — 20 min</div>
+    <div class="slide-title-bar" style="border-color:#10b981;">Exercise A — Junior</div>
+    <p><strong>You are given:</strong> <code>src/product.mjs</code> with three functions:</p>
+    <ul>
+      <li><code>getProductById(id)</code> — returns a product or null</li>
+      <li><code>getProductsByCategory(category)</code> — returns an array</li>
+      <li><code>updateProductPrice(id, newPrice)</code> — returns boolean, throws if price &lt; 0</li>
+    </ul>
+    <p><strong>Write 3 tests in <code>tests/product.test.mjs</code>:</strong></p>
+    <ol>
+      <li><code>getProductById</code> returns a product with the correct id</li>
+      <li><code>getProductById</code> returns the correct name</li>
+      <li><code>updateProductPrice</code> throws when price is negative</li>
+    </ol>
+    <p><strong>Rules:</strong></p>
+    <ul>
+      <li>Use the AAA pattern with comments</li>
+      <li>Name each test as a complete sentence</li>
+      <li>Run <code>npx vitest run</code> — all 3 must be green before you stop</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 15 — Exercise A Senior
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-senior">Senior Stretch — +20 min</div>
+    <div class="slide-title-bar" style="border-color:#8b5cf6;">Exercise A — Senior Stretch</div>
+    <p><strong>After your 3 tests pass:</strong></p>
+    <pre><code>npx vitest run --coverage
+open coverage/index.html</code></pre>
+    <ol>
+      <li>Open the coverage report for <code>product.mjs</code></li>
+      <li>Find the <strong>branch</strong> that is not covered (look for yellow/red highlighting)</li>
+      <li>Identify what scenario that branch represents</li>
+      <li>Write a test that exercises that exact path</li>
+      <li>Re-run coverage — the red branch should turn green</li>
+    </ol>
+    <p><strong>Bonus question to think about:</strong> Is 100% branch coverage enough? Why or why not?</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 16 — Debrief Module 1
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Debrief: Module 1</div>
+    <p>Discussion questions:</p>
+    <ol>
+      <li><strong>What makes a test name good vs bad?</strong> Give an example of a name you wrote and whether you'd change it now.</li>
+      <li><strong>What happens if these tests are not wired to CI?</strong> Walk through the scenario: someone edits <code>product.mjs</code> at 11pm, pushes directly to main. What does your team learn, and when?</li>
+      <li><strong>One function, one test file — is that always the right structure?</strong> When might you want a different layout?</li>
+    </ol>
+    <blockquote>There are no wrong answers here. I want to hear your instincts and then we'll sharpen them.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 17 — Module 1 Key Takeaway
+════════════════════════════════════════════ -->
+<div class="slide slide-takeaway" data-type="takeaway" data-module="Module 1" data-module-color="blue">
+  <div class="slide-inner" style="text-align:center;">
+    <span class="takeaway-icon">📌</span>
+    <div class="takeaway-quote">"Tests are not optional insurance. They are executable specifications."</div>
+    <ul style="text-align:left;display:inline-block;max-width:600px;">
+      <li>Every test is a commitment about how the code should behave</li>
+      <li>Tests that don't run in CI don't exist in practice</li>
+      <li><strong>AAA</strong> is your template — use it until it's automatic</li>
+      <li>Name every test as a sentence — if it can't be a sentence, it's not a test</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 18 — SECTION: Module 2
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-purple" data-type="section" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">Module 2</div>
+    <div class="section-title">TDD + AI: Red-Green-Refactor</div>
+    <div class="section-time-badge">10:30 — 75 minutes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 19 — Module 2 Learning Goals
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">TDD + AI: Red-Green-Refactor — Learning Goals</div>
+    <div class="goals-box">
+      <ol>
+        <li>Execute the <strong>Red-Green-Refactor</strong> cycle with discipline</li>
+        <li>Understand why writing the test first changes design</li>
+        <li>Use Claude Code as a TDD accelerant — not a test generator</li>
+        <li>Recognize the TDD compliance metric and why it matters</li>
+      </ol>
+    </div>
+    <blockquote>This module is not about testing. It is about design. The test is a specification you write before you write code.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 20 — The TDD Cycle
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The TDD Cycle</div>
+    <pre><code>┌─────────────────────────────────┐
+│  RED    Write a failing test    │
+│         (it must fail first)    │
+└────────────────┬────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────┐
+│  GREEN  Write minimal code      │
+│         to make it pass         │
+└────────────────┬────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────┐
+│  REFACTOR  Clean up the code    │
+│            Tests still green    │
+└─────────────────────────────────┘</code></pre>
+    <ul>
+      <li><strong>Red first</strong> — if the test passes before you write any code, it's not a real test</li>
+      <li><strong>Minimal green</strong> — do not write more code than the failing test demands</li>
+      <li><strong>Refactor</strong> — clean without adding features; tests protect you</li>
+    </ul>
+    <blockquote>The discipline is in the order. A lot of developers write tests after — that's verification, not TDD. TDD is design.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 21 — Why Write the Test First?
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Why Write the Test First?</div>
+    <p>Writing the test before the implementation forces you to answer:</p>
+    <ul>
+      <li>What is the <strong>function signature</strong>? (inputs, return type)</li>
+      <li>What is the <strong>contract</strong>? (what it promises to callers)</li>
+      <li>What are the <strong>edge cases</strong>? (before you're tempted to skip them)</li>
+      <li>What would I need to <strong>mock</strong>? (which reveals unwanted dependencies)</li>
+    </ul>
+    <blockquote>When you write the test after, you're describing what the code does. When you write the test first, you're describing what the code should do. Those are very different things.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 22 — DORA 2025 Evidence
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">DORA 2025: Evidence for TDD</div>
+    <ul>
+      <li>Teams using TDD have <strong>40–90% lower defect density</strong> (DORA 2025 State of DevOps)</li>
+      <li>The range is wide because adoption depth varies</li>
+      <li><strong>Test-Driven Generation (TDG)</strong>: use AI to suggest test cases you'd miss — not to skip writing tests</li>
+      <li>TDD compliance metric: <strong>test lines ≥ 1/3 of source lines per commit</strong></li>
+    </ul>
+    <table>
+      <thead><tr><th>Practice</th><th>Defect density change</th></tr></thead>
+      <tbody>
+        <tr><td>TDD (strict)</td><td>−40% to −90%</td></tr>
+        <tr><td>Code review only</td><td>−15% to −35%</td></tr>
+        <tr><td>Coverage gates only</td><td>+5% to +20% (false confidence)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 23 — AI as TDD Accelerant
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">AI as TDD Accelerant</div>
+    <h4>What Claude Code is good at:</h4>
+    <ul>
+      <li><strong>Suggesting edge cases you didn't think of</strong> — "What cases am I missing for addItem?"</li>
+      <li><strong>Scaffolding the test structure</strong> — you review and adjust</li>
+      <li><strong>Explaining why a test fails</strong> — paste the error, get the diagnosis</li>
+    </ul>
+    <h4>What Claude Code is not good at:</h4>
+    <ul>
+      <li>Knowing your business domain (it doesn't know your rules)</li>
+      <li>Catching oracle failures (it validates what code does, not what it should do)</li>
+      <li>Replacing your judgment on what matters</li>
+    </ul>
+    <blockquote>Think of Claude as a fast junior engineer who writes fast first drafts. Your job is to give it the right prompt and then review critically.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 24 — Demo: Cart TDD Cycle
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Demo: Cart TDD Cycle</div>
+    <blockquote>I'm going to show you the full Red-Green-Refactor loop before you run it yourselves.</blockquote>
+    <pre><code>// tests/cart.test.mjs — WRITE FIRST (RED)
+import { describe, it, expect, beforeEach } from 'vitest';
+import { Cart } from '../src/cart.mjs';
+
+describe('Cart.addItem', () =&gt; {
+  let cart;
+  beforeEach(() =&gt; { cart = new Cart(); });
+
+  it('adds a product to the cart', () =&gt; {
+    cart.addItem({ id: 'prod-001', price: 49.99 }, 1);
+    expect(cart.items).toHaveLength(1);
+  });
+
+  it('increases quantity when same product added twice', () =&gt; {
+    cart.addItem({ id: 'prod-001', price: 49.99 }, 1);
+    cart.addItem({ id: 'prod-001', price: 49.99 }, 2);
+    expect(cart.items[0].quantity).toBe(3);
+  });
+});</code></pre>
+    <pre><code>npx vitest run   # → RED</code></pre>
+    <pre><code>// Minimal implementation (GREEN)
+export class Cart {
+  constructor() { this.items = []; }
+  addItem(product, quantity) {
+    const existing = this.items.find(i =&gt; i.id === product.id);
+    if (existing) { existing.quantity += quantity; }
+    else { this.items.push({ ...product, quantity }); }
+  }
+}</code></pre>
+    <pre><code>npx vitest run   # → GREEN</code></pre>
+    <p>Ask Claude Code: <em>"What edge cases am I missing for addItem?"</em></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 25 — Exercise B All
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-all">All — 30 min</div>
+    <div class="slide-title-bar" style="border-color:#10b981;">Exercise B — All</div>
+    <p><strong>Starting from <code>src/cart.mjs</code> skeleton, implement using strict TDD:</strong></p>
+    <ul>
+      <li><code>cart.addItem(product, quantity)</code> — adds product; increments if already in cart</li>
+      <li><code>cart.total()</code> — returns sum of all (price × quantity)</li>
+    </ul>
+    <p><strong>Rules — non-negotiable:</strong></p>
+    <ol>
+      <li>Write the test first</li>
+      <li>Run <code>npx vitest run</code> — watch it fail (RED)</li>
+      <li>Write the minimum implementation</li>
+      <li>Run again — watch it pass (GREEN)</li>
+      <li>Only then clean up</li>
+    </ol>
+    <p>You may use Claude Code to ask: <strong>"What edge cases am I missing for addItem?"</strong></p>
+    <p>Do NOT ask Claude to write the implementation.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 26 — Exercise B Senior
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-senior">Senior Stretch — 15 min</div>
+    <div class="slide-title-bar" style="border-color:#8b5cf6;">Exercise B — Senior Stretch</div>
+    <p><strong>After addItem and total are passing:</strong></p>
+    <p>Add <code>cart.applyDiscount(percentage)</code> using TDD.</p>
+    <p>You must cover:</p>
+    <ul>
+      <li>Negative percentage should throw <code>RangeError</code></li>
+      <li>Percentage &gt; 100 should throw <code>RangeError</code></li>
+      <li>0% discount leaves total unchanged</li>
+      <li>50% discount on $100 cart returns $50</li>
+      <li>Discount never drives total below $0</li>
+    </ul>
+    <p>Write each test. Watch each fail. Implement one case at a time.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 27 — The TDD Enforcer Hook
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The TDD Enforcer Hook</div>
+    <blockquote>Let me show you how this discipline gets enforced mechanically.</blockquote>
+    <p>In some setups, a <code>PreToolUse</code> hook intercepts Write and Edit operations:</p>
+    <pre><code>PreToolUse: Write/Edit detected
+→ Checking: does a test file exist for this module?
+→ If NO and commit contains new src lines: BLOCKED
+→ Message: "Write the test first. Run: npx vitest run (watch for RED)"
+→ 5-minute override available for legitimate refactors</code></pre>
+    <p>This is not about distrust. It is about making the right thing the default path.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 28 — Debrief Module 2
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Debrief: Module 2</div>
+    <ol>
+      <li><strong>How did writing the test first change how you thought about the function interface?</strong> Specifically: did you change the signature or the return value after writing the test?</li>
+      <li><strong>Did Claude Code suggest an edge case you would not have thought of?</strong> Which one? Was it a real bug or noise?</li>
+      <li><strong>Where did the cycle break for you?</strong> Did you write implementation before the test out of habit? What would you need to not do that?</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 29 — Module 2 Key Takeaway
+════════════════════════════════════════════ -->
+<div class="slide slide-takeaway" data-type="takeaway" data-module="Module 2" data-module-color="purple">
+  <div class="slide-inner" style="text-align:center;">
+    <span class="takeaway-icon">📌</span>
+    <div class="takeaway-quote">"TDD is not about testing. It is about design. The test is a specification."</div>
+    <ul style="text-align:left;display:inline-block;max-width:600px;">
+      <li>Write the test first — if it doesn't fail first, it's not a real test</li>
+      <li><strong>Red-Green-Refactor</strong> is a discipline, not a suggestion</li>
+      <li>AI is an edge-case suggester, not a test writer</li>
+      <li>The compliance metric: <strong>test lines ≥ 1/3 of source lines per commit</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 30 — SECTION: Lunch Briefing
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-amber" data-type="section" data-module="Lunch" data-module-color="amber">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">11:45</div>
+    <div class="section-title">Lunch Briefing</div>
+    <div class="section-time-badge">15 minutes — back at 13:00</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 31 — Before You Break for Lunch
+════════════════════════════════════════════ -->
+<div class="slide slide-lunch" data-type="content" data-module="Lunch" data-module-color="amber">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Before You Break for Lunch</div>
+    <blockquote>You have 15 minutes before lunch. Here is what to do with them — do not just check Slack.</blockquote>
+    <ol>
+      <li><strong>Review your Module 2 tests.</strong> Read each test name. Does it describe a behavior or describe code?</li>
+      <li><strong>Think about the coupon system.</strong> In Module 3 we will test <code>coupon.mjs</code>. What do you think the invariants are? What should always be true, no matter the input?</li>
+      <li><strong>Write down one question</strong> you want answered in the afternoon. Anything — about TDD, AI, testing philosophy, whatever surfaced this morning.</li>
+    </ol>
+    <p>We reconvene at 13:00 sharp.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 32 — SECTION: Module 3
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-blue" data-type="section" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">Module 3</div>
+    <div class="section-title">Code Coverage + Mutation Testing</div>
+    <div class="section-time-badge">13:00 — 60 minutes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 33 — Module 3 Learning Goals
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Code Coverage + Mutation Testing — Learning Goals</div>
+    <div class="goals-box">
+      <ol>
+        <li>Distinguish line, branch, and function coverage — and know their limits</li>
+        <li>Understand what <strong>mutation testing</strong> measures and why it matters</li>
+        <li>Run Stryker and interpret a mutation report</li>
+        <li>Close the gap between coverage percentage and real test quality</li>
+      </ol>
+    </div>
+    <blockquote>This module will probably make you uncomfortable. That's the point.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 34 — Three Kinds of Coverage
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Three Kinds of Coverage</div>
+    <table>
+      <thead><tr><th>Type</th><th>What it measures</th><th>Foolable by</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Line coverage</strong></td><td>Lines executed</td><td>Empty assertions (<code>expect(x)</code>)</td></tr>
+        <tr><td><strong>Branch coverage</strong></td><td>Both sides of every if/else</td><td>Tests that always take the happy path</td></tr>
+        <tr><td><strong>Function coverage</strong></td><td>Every function called</td><td>Calling a function and ignoring the result</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>Coverage tools measure <strong>execution</strong>, not <strong>correctness</strong></li>
+      <li>A test that calls a function and asserts nothing counts as 100% line coverage</li>
+      <li>Coverage is necessary but not sufficient</li>
+    </ul>
+    <blockquote>I can give you 100% coverage with a single test that ignores every assertion. Watch.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 35 — The 100% Coverage Illusion
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The Dangerous 100% Coverage Illusion</div>
+    <pre><code>// This achieves 100% line coverage and tests nothing
+it('cart works', () =&gt; {
+  const cart = new Cart();
+  cart.addItem({ id: 'x', price: 10 }, 1);
+  cart.total();              // no assertion
+  expect(cart).toBeDefined(); // existence assertion — always true
+});</code></pre>
+    <ul>
+      <li><code>toBeDefined()</code> passes as long as the object is not <code>undefined</code></li>
+      <li>It tells you nothing about correctness</li>
+      <li>Coverage is <strong>100%</strong>. Bugs caught: <strong>0</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 36 — What Is Mutation Testing?
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">What Is Mutation Testing?</div>
+    <p><strong>Stryker</strong> automatically introduces small bugs into your source code, then runs your tests:</p>
+    <table>
+      <thead><tr><th>Mutant type</th><th>Example change</th></tr></thead>
+      <tbody>
+        <tr><td>Arithmetic</td><td><code>price + tax</code> → <code>price - tax</code></td></tr>
+        <tr><td>Boundary</td><td><code>if (qty &gt; 0)</code> → <code>if (qty &gt;= 0)</code></td></tr>
+        <tr><td>Logical</td><td><code>&amp;&amp;</code> → <code>||</code></td></tr>
+        <tr><td>Negation</td><td><code>return true</code> → <code>return false</code></td></tr>
+        <tr><td>String</td><td><code>'error'</code> → <code>''</code></td></tr>
+      </tbody>
+    </table>
+    <p><strong>Mutation score</strong> = killed mutants / total mutants × 100%</p>
+    <p>If your tests catch the bug: <strong>mutant killed</strong> (good).<br>
+    If your tests still pass with the bug: <strong>mutant survives</strong> (gap in your tests).</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 37 — Mutation Score Thresholds
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Mutation Score Thresholds</div>
+    <table>
+      <thead><tr><th>Score</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><strong>≥ 80%</strong></td><td>High quality test suite</td></tr>
+        <tr><td><strong>60–79%</strong></td><td>Acceptable with review</td></tr>
+        <tr><td><strong>50–59%</strong></td><td>CI fail recommended</td></tr>
+        <tr><td><strong>&lt; 50%</strong></td><td>Tests provide false confidence</td></tr>
+      </tbody>
+    </table>
+    <p><strong>The uncomfortable finding from Outsight AI (2025):</strong><br>
+    AI-generated test suites average <strong>20.32% mutation score</strong> despite high line coverage.</p>
+    <blockquote>Your AI-generated tests look green. Stryker says 4 out of 5 real bugs would survive them.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 38 — Demo: Coverage vs Mutation
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Demo: Coverage vs Mutation Score</div>
+    <pre><code>cd workshop/shop-api-starter
+
+# Step 1: look impressive
+npx vitest run --coverage
+# → shows 85% line coverage — looks fine
+
+# Step 2: reality check
+npx stryker run
+# → open stryker-tmp/reports/mutation/index.html</code></pre>
+    <blockquote>Find the surviving mutants column. Here are 6 bugs your tests would not catch — even though coverage says you're at 85%.</blockquote>
+    <p>Walk through 2–3 surviving mutants on screen:</p>
+    <ul>
+      <li>A <code>&gt;</code> changed to <code>&gt;=</code> in price validation — test only checks the happy path</li>
+      <li>A <code>+</code> changed to <code>-</code> in total calculation — test only checks existence, not value</li>
+      <li>A <code>return false</code> changed to <code>return true</code> in updateProductPrice — no assertion on return value</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 39 — Exercise C Junior
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-junior">Junior — 20 min</div>
+    <div class="slide-title-bar" style="border-color:#10b981;">Exercise C — Junior</div>
+    <ol>
+      <li>Open the Stryker HTML report from the demo run</li>
+      <li>Find <strong>3 surviving mutants</strong> in <code>cart.mjs</code></li>
+      <li>For each surviving mutant, write a test that would kill it</li>
+      <li>Re-run Stryker: <code>npx stryker run</code></li>
+      <li>Target: mutation score <strong>above 70%</strong></li>
+    </ol>
+    <p><strong>Hint for finding surviving mutants:</strong> Look for green lines with a yellow dot — those are lines with a mutant your tests didn't catch.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 40 — Exercise C Senior
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-senior">Senior — 20 min</div>
+    <div class="slide-title-bar" style="border-color:#8b5cf6;">Exercise C — Senior</div>
+    <p>Write <strong>property-based tests</strong> for <code>coupon.mjs</code> using <code>fast-check</code>:</p>
+    <pre><code>npm install --save-dev fast-check</code></pre>
+    <p>Define these 3 invariants as <code>fc.property()</code> tests:</p>
+    <ol>
+      <li><strong>Total after any valid discount (0–100%) is always ≥ 0</strong></li>
+      <li><strong>A 0% discount leaves total unchanged</strong></li>
+      <li><strong>A 100% fixed discount on a $50 item results in $0</strong></li>
+    </ol>
+    <pre><code>import * as fc from 'fast-check';
+import { applyCoupon } from '../src/coupon.mjs';
+
+it('total never goes below zero after any valid discount', () =&gt; {
+  fc.assert(fc.property(
+    fc.float({ min: 0, max: 100 }),
+    (discountPct) =&gt; {
+      const total = applyCoupon(50.00, discountPct);
+      return total &gt;= 0;
+    }
+  ));
+});</code></pre>
+    <p>fast-check will run each property 100 times with randomized inputs.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 41 — Debrief Module 3
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Debrief: Module 3</div>
+    <ol>
+      <li><strong>Were you surprised by the gap between your coverage percentage and mutation score?</strong> What was the actual gap for your cart.mjs tests?</li>
+      <li><strong>Which surviving mutants represent real bugs?</strong> Not theoretical bugs — actual wrong behavior a user would experience.</li>
+      <li><strong>If you had to add Stryker to your current project this week:</strong> What would you need to change about your existing tests to get above 60%?</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 42 — Module 3 Key Takeaway
+════════════════════════════════════════════ -->
+<div class="slide slide-takeaway" data-type="takeaway" data-module="Module 3" data-module-color="blue">
+  <div class="slide-inner" style="text-align:center;">
+    <span class="takeaway-icon">📌</span>
+    <div class="takeaway-quote">"100% coverage + 4% mutation score = 96% of bugs undetected."</div>
+    <ul style="text-align:left;display:inline-block;max-width:600px;">
+      <li><strong>Coverage measures execution.</strong> Mutation testing measures correctness.</li>
+      <li>A test with a weak assertion gives you false confidence</li>
+      <li>Target: <strong>≥ 80% mutation score</strong> on business-critical code</li>
+      <li>AI-generated tests need mutation testing more than human-written tests do</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 43 — SECTION: Module 4
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-purple" data-type="section" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">Module 4</div>
+    <div class="section-title">Code Reviews + Pre-commit Hooks</div>
+    <div class="section-time-badge">14:00 — 60 minutes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 44 — Module 4 Learning Goals
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Code Reviews + Pre-commit Hooks — Learning Goals</div>
+    <div class="goals-box">
+      <ol>
+        <li>Apply the <strong>7-dimension review framework</strong> consistently</li>
+        <li>Distinguish CRITICAL findings (block merge) from INFORMATIONAL (track, don't block)</li>
+        <li>Configure pre-commit hooks that are fast, targeted, and useful</li>
+        <li>Turn every bug you find into a detector for future bugs</li>
+      </ol>
+    </div>
+    <blockquote>Code review is not a courtesy read. It is the last line of defense before production.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 45 — The 7-Dimension Framework
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The 7-Dimension Review Framework</div>
+    <table>
+      <thead><tr><th>Dimension</th><th>Weight</th><th>What to look for</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Correctness</strong></td><td>25%</td><td>Logic errors, wrong return values, off-by-one</td></tr>
+        <tr><td><strong>Security</strong></td><td>20%</td><td>Injection, unvalidated input, hardcoded secrets</td></tr>
+        <tr><td><strong>Readability</strong></td><td>15%</td><td>Naming, complexity, cognitive load</td></tr>
+        <tr><td><strong>Performance</strong></td><td>10%</td><td>N+1 queries, unbounded loops, unnecessary allocation</td></tr>
+        <tr><td><strong>Maintainability</strong></td><td>10%</td><td>Duplication, coupling, extensibility</td></tr>
+        <tr><td><strong>Test Coverage</strong></td><td>10%</td><td>Missing tests, weak assertions, no edge cases</td></tr>
+        <tr><td><strong>Architecture</strong></td><td>10%</td><td>Wrong layer, wrong abstraction, violates contracts</td></tr>
+      </tbody>
+    </table>
+    <p>Total: 100%. Use this checklist every time — not just when you feel like it.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 46 — Two-Pass Review System
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Two-Pass Review System</div>
+    <h4>Pass 1: CRITICAL scan — blocks merge until resolved</h4>
+    <ul>
+      <li>SQL injection via unvalidated user input</li>
+      <li>Hardcoded API key or secret</li>
+      <li>Race condition in concurrent operations</li>
+      <li>Missing error handling on async operations that can fail</li>
+      <li>Authentication bypass</li>
+    </ul>
+    <h4>Pass 2: INFORMATIONAL — tracked, doesn't block merge</h4>
+    <ul>
+      <li>Variable name is ambiguous</li>
+      <li>Function is 40 lines when it could be 20</li>
+      <li>Test name doesn't describe the behavior</li>
+      <li>Missing JSDoc comment</li>
+    </ul>
+    <blockquote>CRITICAL means 'this cannot go to production today.' INFORMATIONAL means 'let's make this better over time.'</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 47 — Finding Format
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Finding Format</div>
+    <p>Every finding should be written in a consistent format:</p>
+    <pre><code>[Dimension] [CRITICAL|INFO] Description of the problem.
+Location: filename.mjs:line
+Why it matters: one sentence.
+Suggested fix: one sentence or code snippet.</code></pre>
+    <p>Example:</p>
+    <pre><code>[Security] [CRITICAL] User input from req.body.quantity is
+interpolated directly into a database query string without
+sanitization.
+Location: src/order.mjs:47
+Why it matters: An attacker can inject arbitrary SQL to read
+or destroy all orders.
+Suggested fix: Use parameterized queries or an ORM.</code></pre>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 48 — Pre-commit Hooks
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Pre-commit Hooks: Fast and Targeted</div>
+    <h4>A good pre-commit hook:</h4>
+    <ul>
+      <li>Runs in <strong>1–5 seconds</strong> (not 30+)</li>
+      <li>Checks <strong>only staged files</strong> — not the whole repo</li>
+      <li><strong>Fails loudly</strong> with a specific message</li>
+      <li>Is <strong>easy to override</strong> when you know what you're doing</li>
+    </ul>
+    <h4>A bad pre-commit hook:</h4>
+    <ul>
+      <li>Takes 45 seconds — developers disable it</li>
+      <li>Runs the full test suite — too slow to be useful as a commit gate</li>
+      <li>Fails with no explanation — developers ignore it</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 49 — Anti-pattern Catalog
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Anti-pattern Catalog</div>
+    <p>Every bug you find becomes a pre-commit detector:</p>
+    <table>
+      <thead><tr><th>Bug found in review</th><th>Pre-commit check</th></tr></thead>
+      <tbody>
+        <tr><td>Hardcoded <code>AWS_SECRET_KEY</code></td><td>secretlint</td></tr>
+        <tr><td>Interpolated SQL</td><td>ripgrep pattern: <code>query.*\${</code></td></tr>
+        <tr><td><code>console.log</code> in production code</td><td>eslint no-console</td></tr>
+        <tr><td><code>TODO:</code> inside test files</td><td>grep pattern + staged-file filter</td></tr>
+        <tr><td>Missing await on async calls</td><td>eslint require-await</td></tr>
+      </tbody>
+    </table>
+    <blockquote>Every finding in a code review is a seed for automation. You fix the bug once. The detector prevents it forever.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 50 — Demo: SQL Bug → Detector
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Demo: Security Bug → Pre-commit Detector</div>
+    <pre><code>// BEFORE (vulnerable)
+async function placeOrder(userId, quantity) {
+  const query = `SELECT * FROM orders WHERE user_id = '${userId}'
+                 AND quantity &gt; ${quantity}`;
+  return db.execute(query);
+}</code></pre>
+    <pre><code>// AFTER (parameterized)
+const query = `SELECT * FROM orders WHERE user_id = ? AND quantity &gt; ?`;
+return db.execute(query, [userId, quantity]);</code></pre>
+    <pre><code>// .lintstagedrc addition
+{
+  "src/**/*.mjs": [
+    "bash -c 'grep -n \"\\${\\.\\*}\" \"$1\" &amp;&amp; echo \"SQL injection risk\" &amp;&amp; exit 1 || exit 0' --"
+  ]
+}</code></pre>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 51 — Exercise D Junior
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-junior">Junior — 15 min</div>
+    <div class="slide-title-bar" style="border-color:#10b981;">Exercise D — Junior</div>
+    <p>You are given: <code>exercises/flawed-pr.diff</code></p>
+    <p>Review it using the 7-dimension checklist. Write <strong>3 findings</strong> using the format:</p>
+    <pre><code>[Dimension] [CRITICAL|INFO] Description.
+Location: file:line
+Why it matters: one sentence.
+Suggested fix: one sentence.</code></pre>
+    <ul>
+      <li>At least one finding must be CRITICAL</li>
+      <li>At least one must be INFORMATIONAL</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 52 — Exercise D Senior
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-senior">Senior — 15 min</div>
+    <div class="slide-title-bar" style="border-color:#8b5cf6;">Exercise D — Senior</div>
+    <p>Configure Husky + lint-staged for the shop-api repo:</p>
+    <pre><code>npm install --save-dev husky lint-staged \
+  @secretlint/secretlint-rule-preset-recommend secretlint
+
+npx husky init</code></pre>
+    <pre><code>// .lintstagedrc
+{
+  "**/*": ["secretlint"]
+}
+// .husky/pre-commit
+npx lint-staged</code></pre>
+    <pre><code># Test it:
+echo "AWS_SECRET_KEY=abc123" &gt;&gt; src/product.mjs
+git add src/product.mjs
+git commit -m "test"
+# → secretlint should block this</code></pre>
+    <p><strong>Senior stretch:</strong> Write a custom lint-staged command that blocks commits containing <code>TODO:</code> inside any file in <code>tests/</code>.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 53 — Debrief Module 4
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Debrief: Module 4</div>
+    <ol>
+      <li><strong>What is the difference between a finding and a fix?</strong> A finding says what is wrong. A fix says what to do. Why does that distinction matter in a review comment?</li>
+      <li><strong>If you found a CRITICAL security issue in someone else's PR:</strong> What do you do? Comment on the PR? Message them directly? Who else needs to know?</li>
+      <li><strong>What pre-commit hook would have the biggest impact on your current team's code quality?</strong> What is stopping you from adding it this week?</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 54 — Module 4 Key Takeaway
+════════════════════════════════════════════ -->
+<div class="slide slide-takeaway" data-type="takeaway" data-module="Module 4" data-module-color="purple">
+  <div class="slide-inner" style="text-align:center;">
+    <span class="takeaway-icon">📌</span>
+    <div class="takeaway-quote">"Code review is not a formality. It is the last line of defense before production."</div>
+    <ul style="text-align:left;display:inline-block;max-width:600px;">
+      <li>Use the <strong>7-dimension framework</strong> — not your instincts alone</li>
+      <li><strong>CRITICAL blocks merge. INFORMATIONAL does not.</strong> Be clear which is which.</li>
+      <li>Pre-commit hooks must be fast (&lt; 5 sec) to be used</li>
+      <li>Every bug you find is a detector waiting to be written</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 55 — SECTION: Module 5
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-blue" data-type="section" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">Module 5</div>
+    <div class="section-title">Playwright + Claude Code</div>
+    <div class="section-time-badge">15:15 — 75 minutes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 56 — Module 5 Learning Goals
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Playwright + Claude Code — Learning Goals</div>
+    <div class="goals-box">
+      <ol>
+        <li>Understand when E2E tests add value unit tests can't provide</li>
+        <li>Use <strong>Playwright MCP</strong> with Claude Code to generate and run E2E tests</li>
+        <li>Write prompts that produce specific, assertion-rich tests</li>
+        <li>Review AI-generated tests with adversarial eyes</li>
+      </ol>
+    </div>
+    <blockquote>E2E tests are expensive to write and maintain. Playwright + Claude changes that equation. But only if you review what comes out.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 57 — Unit Tests vs E2E Tests
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Unit Tests vs E2E Tests</div>
+    <table>
+      <thead><tr><th></th><th>Unit Tests</th><th>E2E Tests</th></tr></thead>
+      <tbody>
+        <tr><td>What they test</td><td>One function</td><td>Full user journey</td></tr>
+        <tr><td>Speed</td><td>Milliseconds</td><td>Seconds to minutes</td></tr>
+        <tr><td>Dependencies</td><td>None (mocked)</td><td>Real server, real browser</td></tr>
+        <tr><td>Failure clarity</td><td>Exact — which line</td><td>Fuzzy — something in the flow</td></tr>
+        <tr><td>Maintenance cost</td><td>Low</td><td>Higher</td></tr>
+        <tr><td>What they miss</td><td>Integration bugs</td><td>Nothing (if complete)</td></tr>
+      </tbody>
+    </table>
+    <blockquote>Unit tests tell you the engine works. E2E tests tell you the car drives.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 58 — Playwright vs Selenium
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Playwright vs Selenium</div>
+    <table>
+      <thead><tr><th></th><th>Playwright</th><th>Selenium</th></tr></thead>
+      <tbody>
+        <tr><td>Auto-wait</td><td>Yes — built in</td><td>No — manual waits</td></tr>
+        <tr><td>Parallel execution</td><td>Yes, out of box</td><td>Requires Grid</td></tr>
+        <tr><td>Browser support</td><td>Chromium, Firefox, WebKit</td><td>Chrome, Firefox, Edge</td></tr>
+        <tr><td>API style</td><td>Modern async/await</td><td>Older callback-heavy</td></tr>
+        <tr><td>Trace viewer</td><td>Yes — visual replay</td><td>No</td></tr>
+        <tr><td>Speed</td><td>Fast</td><td>Slower</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><strong>Self-healing locators</strong> (Playwright 1.56): if a CSS class changes, Playwright tries alternative selectors automatically</li>
+      <li>This dramatically reduces "flaky selector" failures</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 59 — Playwright MCP: How It Works
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Playwright MCP: How It Works</div>
+    <h4>Without MCP:</h4>
+    <ul>
+      <li>Claude looks at screenshots → interprets pixels → guesses selectors</li>
+      <li>Token-heavy, error-prone, requires visual interpretation</li>
+    </ul>
+    <h4>With Playwright MCP:</h4>
+    <ul>
+      <li>Claude connects to the browser's <strong>accessibility tree</strong> — the structured semantic representation</li>
+      <li>Gets element roles, labels, text content — not pixel positions</li>
+      <li><strong>4x more token-efficient</strong> than screenshot mode</li>
+      <li>Selectors derived from meaning, not layout</li>
+    </ul>
+    <blockquote>Claude doesn't 'see' the page. It reads it like a screen reader would. That's why the selectors are more stable.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 60 — The Prompting Skill
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The Prompting Skill</div>
+    <table>
+      <thead><tr><th>Weak prompt</th><th>Strong prompt</th></tr></thead>
+      <tbody>
+        <tr><td>"Test the checkout"</td><td>"Write an E2E test that navigates to /, adds 'Blue Hoodie' to cart, proceeds to checkout, fills in email 'test@example.com', clicks 'Complete Purchase', and verifies the confirmation text contains 'Order confirmed'"</td></tr>
+        <tr><td>"Test login"</td><td>"Test that logging in with an incorrect password shows the message 'Invalid credentials' and does not redirect"</td></tr>
+        <tr><td>"Check the cart"</td><td>"Verify that attempting checkout with an empty cart shows an error message containing 'Your cart is empty' without navigating away from the cart page"</td></tr>
+      </tbody>
+    </table>
+    <h4>Rules for strong prompts:</h4>
+    <ul>
+      <li><strong>Specific user action sequence</strong> — step by step</li>
+      <li><strong>Named elements</strong> — use the real label/button text</li>
+      <li><strong>Explicit assertion</strong> — what text/state you expect to see</li>
+      <li><strong>Failure condition</strong> — what should NOT happen</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 61 — Demo: E2E Checkout Test
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Demo: E2E Checkout Test via Claude Code</div>
+    <pre><code>cd workshop/shop-api-starter
+npm run dev</code></pre>
+    <p><strong>Prompt to Claude Code:</strong></p>
+    <blockquote>Using Playwright MCP, write an E2E test for the checkout flow: navigate to /, add 'Blue Hoodie' to the cart, proceed to checkout, fill in email field with 'test@example.com', click the 'Complete Purchase' button, verify the confirmation message contains 'Order confirmed'. Save the test to e2e/checkout.spec.js.</blockquote>
+    <pre><code>npx playwright test e2e/checkout.spec.js
+npx playwright show-report</code></pre>
+    <p><strong>Review the generated test critically:</strong></p>
+    <ul>
+      <li>Is the assertion <code>.toContain('Order confirmed')</code> or <code>.toContain('')</code>?</li>
+      <li>Does it test what happens on failure (e.g., bad email)?</li>
+      <li>Are there hardcoded wait times (<code>page.waitForTimeout(3000)</code>) — red flag</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 62 — Exercise E All
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-all">All — 30 min</div>
+    <div class="slide-title-bar" style="border-color:#10b981;">Exercise E — All</div>
+    <p>Write your own prompts to Claude Code. Generate and run these three E2E tests:</p>
+    <ol>
+      <li><strong>Test 1:</strong> Attempting checkout with an empty cart shows an error message</li>
+      <li><strong>Test 2:</strong> After completing a purchase, the product stock count decreases by the ordered quantity</li>
+      <li><strong>Test 3:</strong> Attempting to set a negative price in the admin form is rejected with a validation message</li>
+    </ol>
+    <p><strong>Process for each test:</strong></p>
+    <ol>
+      <li>Write your prompt (be specific — use the prompt rules above)</li>
+      <li>Submit to Claude Code</li>
+      <li>Run the generated test: <code>npx playwright test</code></li>
+      <li>Review the assertions — are they specific or existence-only?</li>
+      <li>Strengthen any weak assertion</li>
+    </ol>
+    <p>After all three: be ready to share your best prompt and your weakest assertion.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 63 — Debrief Module 5
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Debrief: Module 5</div>
+    <ol>
+      <li><strong>Which of your three prompts produced the best test?</strong> What specifically made it better — was it the level of detail, the named elements, the explicit assertion?</li>
+      <li><strong>Find the weakest assertion in any test you reviewed today.</strong> Read it aloud. What real bug would it fail to catch?</li>
+      <li><strong>Where is the line between using Claude to accelerate and using Claude to avoid thinking?</strong> What does "critical review" mean in practice for you?</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 64 — Module 5 Key Takeaway
+════════════════════════════════════════════ -->
+<div class="slide slide-takeaway" data-type="takeaway" data-module="Module 5" data-module-color="blue">
+  <div class="slide-inner" style="text-align:center;">
+    <span class="takeaway-icon">📌</span>
+    <div class="takeaway-quote">"Claude Code writes the Playwright. You write the prompts — and you review the output critically."</div>
+    <ul style="text-align:left;display:inline-block;max-width:600px;">
+      <li>Playwright MCP reads the accessibility tree — more stable than screenshots</li>
+      <li><strong>Specificity in prompts = quality in tests</strong></li>
+      <li>Self-healing locators reduce maintenance, not eliminate review</li>
+      <li>Every AI-generated assertion must be read: does it actually assert the behavior?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 65 — SECTION: Module 6
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-purple" data-type="section" data-module="Module 6" data-module-color="purple">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">Module 6</div>
+    <div class="section-title">AI Hallucinations + Safeguards</div>
+    <div class="section-time-badge">16:30 — 30 minutes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 66 — Module 6 Learning Goals
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 6" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">AI Hallucinations + Safeguards — Learning Goals</div>
+    <div class="goals-box">
+      <ol>
+        <li>Name and recognize the 4 failure modes of AI-generated tests</li>
+        <li>Build critical review habits that apply in the next 24 hours</li>
+        <li>Know the team-level gates that catch what individual review misses</li>
+      </ol>
+    </div>
+    <blockquote>The most dangerous test is one that passes but doesn't catch anything.</blockquote>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 67 — The 4 Failure Modes (1/2)
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 6" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The 4 Failure Modes (1 / 2)</div>
+    <h4>Failure Mode 1: Existence-only assertions</h4>
+    <pre><code>// Looks like a test. Is not a test.
+expect(result).toBeDefined();
+expect(cart).not.toBeNull();
+expect(response.status).toBeTruthy();  // 404 is truthy!</code></pre>
+    <p>Fix: assert the specific value, not existence.</p>
+    <h4>Failure Mode 2: Over-mocking</h4>
+    <pre><code>// Mocks the thing you're testing — tests the mock, not the code
+vi.mock('../src/cart.mjs', () =&gt; ({ addItem: vi.fn().mockReturnValue(true) }));
+it('addItem returns true', () =&gt; {
+  expect(addItem()).toBe(true);  // you wrote this. you're testing your own mock.
+});</code></pre>
+    <p>Fix: mock dependencies, not the unit under test.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 68 — The 4 Failure Modes (2/2)
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 6" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The 4 Failure Modes (2 / 2)</div>
+    <h4>Failure Mode 3: Coverage without quality</h4>
+    <p>The Outsight AI finding (2025): AI-generated test suites achieve high line coverage but average <strong>20.32% mutation score</strong>.</p>
+    <p>The tests run every line. They detect almost no bugs. The coverage report looks healthy.</p>
+    <h4>Failure Mode 4: Oracle failures</h4>
+    <p>An oracle failure is when the test validates what the code does, not what it should do.</p>
+    <pre><code>// Cart calculates total wrong: 10 + 20 = 25 (off by 5)
+// AI generates test AFTER seeing the broken implementation
+it('total is correct', () =&gt; {
+  expect(cart.total()).toBe(25); // wrong answer, but it matches the code
+});</code></pre>
+    <p>AI tests generated after the implementation tend to validate the implementation, including its bugs.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 69 — The 4 Safeguards
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 6" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The 4 Safeguards</div>
+    <table>
+      <thead><tr><th>Safeguard</th><th>What it catches</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Write tests before code (TDD)</strong></td><td>Oracle failures — spec before implementation</td></tr>
+        <tr><td><strong>Run mutation testing on AI suites</strong></td><td>Coverage-without-quality, existence assertions</td></tr>
+        <tr><td><strong>Human review all AI tests</strong></td><td>Adversarial thinking — what would a real bug look like?</td></tr>
+        <tr><td><strong>Team gates: PR blocks if mutation &lt; threshold</strong></td><td>Systematic gap — catches what individual review misses</td></tr>
+      </tbody>
+    </table>
+    <blockquote>Individual vigilance is necessary. Team gates are sufficient.</blockquote>
+    <p>The mental model for review: <strong>"What real bug would survive this test suite?"</strong><br>
+    Not: "Do the tests look complete?"</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 70 — Exercise F All
+════════════════════════════════════════════ -->
+<div class="slide slide-exercise" data-type="exercise" data-module="Module 6" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="exercise-badge badge-all">All — 15 min</div>
+    <div class="slide-title-bar" style="border-color:#10b981;">Exercise F — All</div>
+    <p>Open <code>exercises/hallucination-exercise.mjs</code>.</p>
+    <p><strong>10 tests are provided. Some are real tests. Some are testing illusions.</strong></p>
+    <p>For each test, mark it:</p>
+    <ul>
+      <li><strong>GOOD</strong> — tests a real behavior with a specific assertion</li>
+      <li><strong>ILLUSION</strong> — passes but catches no real bugs</li>
+    </ul>
+    <p>Then pick <strong>2 ILLUSION tests</strong> and fix them. A fixed test should fail if the code is wrong.</p>
+    <p>Be ready to explain: what real bug would each ILLUSION have missed?</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 71 — Debrief Module 6
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Module 6" data-module-color="purple">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Debrief: Module 6</div>
+    <ol>
+      <li><strong>Which illusions were hardest to spot?</strong> Was it the existence assertions, the over-mocks, or something else?</li>
+      <li><strong>What pattern would you add to your team's code review checklist</strong> to catch existence-only assertions before they merge?</li>
+      <li><strong>If you're using AI to generate tests starting tomorrow:</strong> What is the one thing you will do differently based on today?</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 72 — Module 6 Key Takeaway
+════════════════════════════════════════════ -->
+<div class="slide slide-takeaway" data-type="takeaway" data-module="Module 6" data-module-color="purple">
+  <div class="slide-inner" style="text-align:center;">
+    <span class="takeaway-icon">📌</span>
+    <div class="takeaway-quote">"The most dangerous test is one that passes but doesn't catch anything."</div>
+    <ul style="text-align:left;display:inline-block;max-width:600px;">
+      <li>AI tests have high coverage and low mutation scores by default</li>
+      <li>TDD is the primary safeguard — write the spec before the code</li>
+      <li>Review AI tests adversarially: <strong>"What bug would this miss?"</strong></li>
+      <li>Team gates (mutation score in CI) are the systematic backstop</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 73 — SECTION: Capstone
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-green" data-type="section" data-module="Capstone" data-module-color="green">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">17:00</div>
+    <div class="section-title">Capstone Presentations + Critical Feedback</div>
+    <div class="section-time-badge">45 minutes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 74 — Capstone: Present Your Work
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Capstone" data-module-color="green">
+  <div class="slide-inner">
+    <div class="slide-title-bar">Capstone: Present Your Work</div>
+    <p><strong>Structure:</strong> Each participant presents for 3 minutes. Group gives 2 minutes of feedback.</p>
+    <p><strong>Three questions on the board — answer all three:</strong></p>
+    <ol>
+      <li><strong>What test did you write today that you are most confident in? Why?</strong></li>
+      <li><strong>What test did you write today that you now have doubts about? What would you change?</strong></li>
+      <li><strong>What is the one practice from today you will apply in your current project in the next week?</strong></li>
+    </ol>
+    <blockquote>The third question is a commitment, not a goal. I'm going to ask you to write it down with a specific action and a specific deadline.</blockquote>
+    <p><strong>Written feedback format:</strong> Each person in the room writes one sentence on a card for the presenter — either a strength they heard or a specific question.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 75 — SECTION: Close
+════════════════════════════════════════════ -->
+<div class="slide slide-section mod-amber" data-type="section" data-module="Close" data-module-color="amber">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="mod-number-badge">17:45</div>
+    <div class="section-title">Close</div>
+    <div class="section-time-badge">15 minutes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 76 — What You Leave With
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Close" data-module-color="amber">
+  <div class="slide-inner">
+    <div class="slide-title-bar">What You Leave With</div>
+    <h4>Immediate actions (this week):</h4>
+    <ul>
+      <li>Add <code>npx stryker run</code> to your project — see your real mutation score</li>
+      <li>Add one pre-commit hook (secretlint is the fastest win)</li>
+      <li>Review one AI-generated test in your repo using the 4 failure modes</li>
+    </ul>
+    <h4>Resources:</h4>
+    <ul>
+      <li>Workshop repo: all exercises, starters, solutions on the workshop GitHub</li>
+      <li>Vitest docs: <code>vitest.dev</code></li>
+      <li>Playwright docs + MCP setup: <code>playwright.dev</code></li>
+      <li>Stryker docs: <code>stryker-mutator.io</code></li>
+      <li>fast-check docs: <code>fast-check.dev</code></li>
+      <li>DORA 2025 State of DevOps Report (linked in repo README)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SLIDE 77 — One-Slide Summary
+════════════════════════════════════════════ -->
+<div class="slide slide-content" data-type="content" data-module="Close" data-module-color="amber">
+  <div class="slide-inner">
+    <div class="slide-title-bar">The One-Slide Summary</div>
+    <table>
+      <thead><tr><th>Practice</th><th>Signal it gives</th><th>Minimum threshold</th></tr></thead>
+      <tbody>
+        <tr><td>Unit tests in CI</td><td>Code does not regress</td><td>100% pass</td></tr>
+        <tr><td>Branch coverage</td><td>Tests execute branches</td><td>≥ 80%</td></tr>
+        <tr><td>Mutation score</td><td>Tests catch real bugs</td><td>≥ 70%</td></tr>
+        <tr><td>Pre-commit hooks</td><td>Fast feedback before push</td><td>&lt; 5 sec</td></tr>
+        <tr><td>E2E tests</td><td>Full flow works</td><td>Critical paths covered</td></tr>
+        <tr><td>Human review of AI tests</td><td>Oracle failures blocked</td><td>Every AI-generated test</td></tr>
+      </tbody>
+    </table>
+    <blockquote>Quality is not a gate at the end of development. It is a property you build in from the first line of code. Thank you for today.</blockquote>
+  </div>
+</div>
+
+</div><!-- end #slideshow -->
+
+<!-- ─── Overview Modal ─── -->
+<div id="overview">
+  <div id="overview-header">
+    <h2>Slide Overview — click to jump</h2>
+    <button id="overview-close">Close (Esc)</button>
+  </div>
+  <div id="overview-grid"></div>
+</div>
+
+<script>
+(function() {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const counter = document.getElementById('slide-counter');
+  const progressBar = document.getElementById('progress-bar');
+  const moduleBadgeText = document.getElementById('module-badge-text');
+  const moduleDot = document.querySelector('#module-badge .dot');
+  const moduleLabel = document.getElementById('module-label');
+  const overviewEl = document.getElementById('overview');
+  const overviewGrid = document.getElementById('overview-grid');
+  const overviewClose = document.getElementById('overview-close');
+
+  const colorMap = {
+    blue:   '#3b82f6',
+    purple: '#8b5cf6',
+    green:  '#10b981',
+    amber:  '#f59e0b',
+  };
+
+  function getSlideTitle(slide) {
+    const tb = slide.querySelector('.slide-title-bar');
+    if (tb) return tb.textContent.trim();
+    const st = slide.querySelector('.section-title');
+    if (st) return st.textContent.trim();
+    const mt = slide.querySelector('.main-title');
+    if (mt) return mt.textContent.replace(/\s+/g, ' ').trim();
+    return '—';
+  }
+
+  function updateChrome() {
+    const slide = slides[current];
+    const mod = slide.dataset.module || 'Workshop';
+    const color = colorMap[slide.dataset.moduleColor] || '#3b82f6';
+
+    counter.textContent = `${current + 1} / ${total}`;
+    progressBar.style.width = `${((current + 1) / total) * 100}%`;
+    moduleBadgeText.textContent = mod;
+    moduleDot.style.background = color;
+    moduleLabel.textContent = 'AI-Enhanced Quality Assurance in Software Engineering';
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    slides[current].classList.remove('active');
+    current = idx;
+    slides[current].classList.add('active');
+    // Scroll slide inner back to top
+    const inner = slides[current].querySelector('.slide-inner');
+    if (inner) inner.scrollTop = 0;
+    updateChrome();
+    syncOverviewHighlight();
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+
+  // Keyboard nav
+  document.addEventListener('keydown', (e) => {
+    if (overviewEl.classList.contains('visible')) {
+      if (e.key === 'Escape') closeOverview();
+      return;
+    }
+    switch (e.key) {
+      case 'ArrowRight': case ' ': case 'PageDown': e.preventDefault(); next(); break;
+      case 'ArrowLeft':  case 'PageUp':            e.preventDefault(); prev(); break;
+      case 'Escape': openOverview(); break;
+    }
+  });
+
+  // Click zones for nav (left/right halves)
+  document.getElementById('slideshow').addEventListener('click', (e) => {
+    if (overviewEl.classList.contains('visible')) return;
+    if (e.target.closest('a, button, pre, table')) return;
+    const half = window.innerWidth / 2;
+    if (e.clientX > half) next(); else prev();
+  });
+
+  // Touch/swipe
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  // ─── Overview ───
+  function buildOverview() {
+    slides.forEach((slide, i) => {
+      const type = slide.dataset.type || 'content';
+      const color = colorMap[slide.dataset.moduleColor] || '#3b82f6';
+      const title = getSlideTitle(slide);
+      const div = document.createElement('div');
+      div.className = `thumb type-${type}`;
+      div.innerHTML = `
+        <div class="thumb-type-bar" style="background:${type === 'content' ? '#334155' : color}"></div>
+        <div class="thumb-num">${i + 1}</div>
+        <div class="thumb-title">${title}</div>
+      `;
+      div.addEventListener('click', () => { goTo(i); closeOverview(); });
+      overviewGrid.appendChild(div);
+    });
+  }
+
+  function syncOverviewHighlight() {
+    const thumbs = overviewGrid.querySelectorAll('.thumb');
+    thumbs.forEach((t, i) => t.classList.toggle('current', i === current));
+  }
+
+  function openOverview() {
+    overviewEl.classList.add('visible');
+    syncOverviewHighlight();
+    // Scroll to current thumb
+    const thumbs = overviewGrid.querySelectorAll('.thumb');
+    if (thumbs[current]) thumbs[current].scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  function closeOverview() {
+    overviewEl.classList.remove('visible');
+  }
+
+  overviewClose.addEventListener('click', closeOverview);
+
+  // Init
+  buildOverview();
+  updateChrome();
+})();
+</script>
+</body>
+</html>

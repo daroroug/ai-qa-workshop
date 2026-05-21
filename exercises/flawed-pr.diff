@@ -1,0 +1,280 @@
+From 3a7f1c2d Mon Sep 17 00:00:00 2001
+From: Alex Chen <alex.chen@shopco.io>
+Date: Wed, 18 May 2026 14:22:07 +0000
+Subject: [PATCH] feat(orders): add order search endpoint and admin coupon creation
+
+Adds GET /api/admin/orders/search to allow filtering orders by customer
+email. Also adds POST /api/admin/coupons for internal tooling use.
+Includes unit test for the search handler.
+
+---
+ src/admin.mjs             | 87 ++++++++++++++++++++++++++++++++++++++++
+ src/db.mjs                | 14 +++++++
+ tests/admin.test.mjs      | 23 +++++++++++
+ config/integrations.mjs   |  8 ++++
+ 4 files changed, 132 insertions(+)
+ create mode 100644 src/admin.mjs
+ create mode 100644 src/db.mjs
+ create mode 100644 tests/admin.test.mjs
+ create mode 100644 config/integrations.mjs
+
+diff --git a/src/db.mjs b/src/db.mjs
+new file mode 100644
+index 0000000..9b3e4c1
+--- /dev/null
++++ b/src/db.mjs
+@@ -0,0 +1,14 @@
++// db.mjs — thin wrapper around the postgres client
++import pg from 'pg';
++
++const pool = new pg.Pool({
++  host: process.env.DB_HOST || 'localhost',
++  port: Number(process.env.DB_PORT) || 5432,
++  database: process.env.DB_NAME || 'shopdb',
++  user: process.env.DB_USER || 'shopuser',
++  password: process.env.DB_PASS || 'shoppass',
++});
++
++export async function query(sql, params = []) {
++  const result = await pool.query(sql, params);
++  return result.rows;
++}
+diff --git a/src/admin.mjs b/src/admin.mjs
+new file mode 100644
+index 0000000..d4f8a30
+--- /dev/null
++++ b/src/admin.mjs
+@@ -0,0 +1,87 @@
++// admin.mjs — admin-only routes
++// Mounted at /api/admin by server.mjs (behind middleware auth check)
++
++import express from 'express';
++import { query } from './db.mjs';
++import { createCoupon, CouponType } from './coupon.mjs';
++import { sendAdminAlert } from './notifications.mjs';
++
++const router = express.Router();
++
++// ── Order Search ──────────────────────────────────────────────────────────────
++
++/**
++ * GET /api/admin/orders/search?email=foo@bar.com
++ * Returns all orders matching the given customer email.
++ */
++router.get('/orders/search', async (req, res) => {
++  const { email } = req.query;
++
++  if (!email) {
++    return res.status(400).json({ error: 'email query parameter is required' });
++  }
++
++  // ISSUE 1 — SQL INJECTION
++  // User-supplied `email` is interpolated directly into the SQL string.
++  // An attacker can pass: email=' OR '1'='1  to dump the entire orders table,
++  // or use UNION attacks to exfiltrate other tables.
++  // Fix: use parameterised query — query('SELECT * FROM orders WHERE customer_email = $1', [email])
++  const rows = await query(`SELECT * FROM orders WHERE customer_email = '${email}'`);
++
++  res.json({ orders: rows });
++});
++
++// ── Coupon Administration ─────────────────────────────────────────────────────
++
++/**
++ * POST /api/admin/coupons
++ * Body: { code, type, value, expiresAt? }
++ * Creates a new coupon and saves it to the database.
++ */
++router.post('/coupons', async (req, res) => {
++  const { code, type, value, expiresAt } = req.body;
++
++  let coupon;
++  try {
++    coupon = createCoupon({ code, type, value, expiresAt });
++  } catch (err) {
++    return res.status(400).json({ error: err.message });
++  }
++
++  // ISSUE 2 — MISSING ERROR HANDLING
++  // The await on query() is not wrapped in a try/catch.
++  // If the database is unavailable or the INSERT violates a constraint
++  // (e.g., duplicate coupon code), this throws an unhandled promise rejection
++  // which crashes the Node process in production.
++  // Fix: wrap in try/catch and return res.status(500).json({ error: ... })
++  await query(
++    'INSERT INTO coupons (code, type, value, expires_at) VALUES ($1, $2, $3, $4)',
++    [coupon.code, coupon.type, coupon.value, coupon.expiresAt]
++  );
++
++  // Notify the admin Slack channel that a coupon was created
++  await sendAdminAlert(`Coupon created: ${coupon.code} (${coupon.type}, ${coupon.value})`);
++
++  res.status(201).json({ coupon });
++});
++
++// ── Inventory Snapshot ────────────────────────────────────────────────────────
++
++/**
++ * GET /api/admin/inventory
++ * Returns current stock levels for all products.
++ */
++router.get('/inventory', async (req, res) => {
++  const rows = await query(
++    'SELECT id, name, stock FROM products ORDER BY stock ASC'
++  );
++  res.json({ inventory: rows });
++});
++
++export default router;
+diff --git a/tests/admin.test.mjs b/tests/admin.test.mjs
+new file mode 100644
+index 0000000..e8c2b77
+--- /dev/null
++++ b/tests/admin.test.mjs
+@@ -0,0 +1,23 @@
++// admin.test.mjs — unit tests for admin routes
++
++import { describe, it, expect, vi, beforeEach } from 'vitest';
++
++// Mock the database module so tests don't need a real Postgres instance
++vi.mock('../src/db.mjs', () => ({
++  query: vi.fn().mockResolvedValue([
++    { id: 1001, customer_email: 'alice@example.com', total: 89.99, status: 'confirmed' },
++  ]),
++}));
++
++import { query } from '../src/db.mjs';
++
++describe('order search query', () => {
++  beforeEach(() => vi.clearAllMocks());
++
++  // ISSUE 3 — EXISTENCE-ONLY ASSERTION
++  // The test confirms the mock was called but never asserts what SQL was executed
++  // or that parameterised queries are used. A SQL-injection vulnerability in the
++  // query string would not be detected by this test.
++  it('calls the database when searching by email', async () => {
++    await query('SELECT * FROM orders WHERE customer_email = $1', ['alice@example.com']);
++    expect(query).toBeDefined();
++  });
++});
+diff --git a/config/integrations.mjs b/config/integrations.mjs
+new file mode 100644
+index 0000000..7f3a0c8
+--- /dev/null
++++ b/config/integrations.mjs
+@@ -0,0 +1,8 @@
++// integrations.mjs — third-party service configuration
++
++export const integrations = {
++  slack: {
++    // ISSUE 4 — HARDCODED API KEY
++    // A real Slack webhook token is committed in plaintext.
++    // Fix: read from process.env.SLACK_WEBHOOK_URL and never commit secrets.
++    webhookUrl: 'https://hooks.slack.com/services/TXXXXXXXXX/BXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXX',
++  },
++  stripe: {
++    // This is a test-mode publishable key — low severity but still bad practice.
++    publicKey: 'pk_test_51NxQzLKJ2eB7I9mV3hRtYsWqXpA0cFgDjE1nOlBkMuZHTvCyRx8dPwGNaM4sJeQ',
++  },
++};
+--
+2.44.0
+
+================================================================================
+CODE REVIEW EXERCISE — Module 4
+================================================================================
+
+Instructions:
+  1. Read the diff above as if you are reviewing it on GitHub.
+  2. Find all 4 issues. For each one, write:
+     a. Location (file + line or function name)
+     b. Severity (CRITICAL / HIGH / MEDIUM / INFO)
+     c. Category (Security / Correctness / Test Coverage / Style)
+     d. Explanation (1-2 sentences)
+     e. Fix (what change would resolve it)
+
+Hint: There is at least one CRITICAL security bug, one correctness bug,
+one test quality issue, and one secret management problem.
+
+After finding all 4, check your answers below.
+
+================================================================================
+ANSWERS (scroll down)
+================================================================================
+
+
+
+
+                              [ keep scrolling ]
+
+
+
+
+================================================================================
+
+ISSUE 1 — SQL Injection via String Interpolation
+File:     src/admin.mjs, router.get('/orders/search')
+Severity: CRITICAL
+Category: Security (OWASP A03:2021 Injection)
+Problem:  `email` from req.query is interpolated directly into the SQL string:
+            query(`SELECT * FROM orders WHERE customer_email = '${email}'`)
+          An attacker sends: ?email=' OR '1'='1'--
+          This returns every order in the database. More sophisticated attacks
+          can exfiltrate any table or drop data.
+Fix:      Use a parameterised query:
+            query('SELECT * FROM orders WHERE customer_email = $1', [email])
+          The pg driver sends the value as a separate parameter, never
+          interpreted as SQL syntax.
+
+────────────────────────────────────────────────────────────────────────────────
+
+ISSUE 2 — Missing Error Handling on Async DB Call
+File:     src/admin.mjs, router.post('/coupons')
+Severity: CRITICAL
+Category: Correctness
+Problem:  The INSERT query is awaited without a try/catch:
+            await query('INSERT INTO coupons ...', [...])
+          If the database is down, the connection pool is exhausted, or the
+          coupon code already exists (UNIQUE constraint), an unhandled promise
+          rejection propagates and crashes the Node.js process.
+Fix:      Wrap the await in try/catch and return a 500 response:
+            try {
+              await query('INSERT INTO coupons ...', [...]);
+            } catch (err) {
+              return res.status(500).json({ error: 'Failed to save coupon' });
+            }
+
+────────────────────────────────────────────────────────────────────────────────
+
+ISSUE 3 — Test Only Checks .toBeDefined() (Existence-Only Assertion)
+File:     tests/admin.test.mjs, 'calls the database when searching by email'
+Severity: INFO
+Category: Test Coverage
+Problem:  The test calls query() and then asserts `expect(query).toBeDefined()`.
+          This checks that the imported mock is not undefined — which is always
+          true regardless of what the implementation does. The test would pass
+          even if the SQL injection bug were present and even if the function
+          had been deleted and re-exported as a no-op.
+Fix:      Assert the mock was called with the correct parameterised arguments:
+            expect(query).toHaveBeenCalledWith(
+              'SELECT * FROM orders WHERE customer_email = $1',
+              ['alice@example.com']
+            );
+
+────────────────────────────────────────────────────────────────────────────────
+
+ISSUE 4 — Hardcoded API Key Committed to Repository
+File:     config/integrations.mjs, integrations.slack.webhookUrl
+Severity: CRITICAL
+Category: Security (OWASP A02:2021 Cryptographic Failures / Secret Management)
+Problem:  A real Slack Incoming Webhook URL is committed in plaintext:
+            webhookUrl: 'https://hooks.slack.com/services/T04NX9KJR/...'
+          Anyone with read access to the repository (including future
+          contributors, CI runners, or if the repo is ever made public) can
+          use this token to post messages to the Slack workspace. Secret
+          scanning tools like GitHub Advanced Security will flag this
+          immediately on push.
+Fix:      Remove the secret from the file. Read from environment at runtime:
+            webhookUrl: process.env.SLACK_WEBHOOK_URL,
+          Add the variable to .env.example with a placeholder value, and
+          ensure .env is in .gitignore. Rotate the exposed token immediately.

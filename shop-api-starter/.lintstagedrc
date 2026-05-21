@@ -1,0 +1,4 @@
+{
+  "*.mjs": ["eslint --fix"],
+  "*.{mjs,js,json}": ["secretlint"]
+}

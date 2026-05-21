@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Enhanced QA in Software Engineering — Workshop Overview</title>
+<style>
+  /* ─── Reset & Base ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .page-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+  }
+
+  h1, h2, h3, h4, h5 {
+    line-height: 1.25;
+    font-weight: 700;
+  }
+
+  a {
+    color: #60a5fa;
+    text-decoration: none;
+  }
+  a:hover { text-decoration: underline; }
+
+  /* ─── Section Titles ─── */
+  .section-title {
+    font-size: 1.6rem;
+    color: #f1f5f9;
+    margin-bottom: 6px;
+  }
+  .section-subtitle {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    margin-bottom: 28px;
+  }
+
+  .section {
+    margin-bottom: 56px;
+  }
+
+  /* ─── 1. Hero ─── */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-bottom: 4px solid #3b82f6;
+    padding: 56px 40px 48px;
+    margin-bottom: 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(59,130,246,0.18);
+    border: 1px solid rgba(59,130,246,0.4);
+    color: #93c5fd;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: 2.4rem;
+    color: #f8fafc;
+    margin-bottom: 14px;
+    max-width: 820px;
+    letter-spacing: -0.02em;
+  }
+  .hero .subtitle {
+    font-size: 1.15rem;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    max-width: 680px;
+  }
+  .hero .date-tag {
+    font-size: 0.85rem;
+    color: #60a5fa;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── 2. RARIX System Map — Cards ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  .qa-card {
+    background: #1e293b;
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    padding: 20px 22px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .qa-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  }
+  .qa-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .qa-card-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .qa-card-meta {
+    flex: 1;
+  }
+  .qa-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 2px;
+  }
+  .qa-card-stat {
+    font-size: 0.78rem;
+    color: #3b82f6;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    background: rgba(59,130,246,0.1);
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+  }
+  .qa-card-desc {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    line-height: 1.55;
+  }
+
+  /* ─── 3. Tool Landscape Panels ─── */
+  .landscape-panel {
+    background: #1e293b;
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .landscape-panel h3 {
+    font-size: 1.05rem;
+    color: #60a5fa;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #334155;
+    letter-spacing: 0.02em;
+  }
+
+  /* Comparison tables */
+  .cmp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.855rem;
+  }
+  .cmp-table thead th {
+    text-align: left;
+    padding: 8px 12px;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #334155;
+  }
+  .cmp-table tbody tr {
+    border-bottom: 1px solid #1e3a5f20;
+  }
+  .cmp-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .cmp-table tbody td {
+    padding: 10px 12px;
+    color: #cbd5e1;
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  .cmp-table tbody tr:hover td {
+    background: rgba(59,130,246,0.04);
+  }
+  .tool-name {
+    font-weight: 600;
+    color: #e2e8f0;
+    white-space: nowrap;
+  }
+  .cov-badge {
+    display: inline-block;
+    background: rgba(16,185,129,0.12);
+    color: #6ee7b7;
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  /* Pull quote */
+  .pull-quote {
+    border-left: 3px solid #3b82f6;
+    padding: 12px 18px;
+    margin: 10px 0;
+    background: rgba(59,130,246,0.06);
+    border-radius: 0 6px 6px 0;
+  }
+  .pull-quote .quote-text {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    font-style: italic;
+    margin-bottom: 4px;
+    line-height: 1.55;
+  }
+  .pull-quote .quote-source {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  /* Playwright list */
+  .playwright-list {
+    list-style: none;
+    padding: 0;
+  }
+  .playwright-list li {
+    padding: 10px 0 10px 0;
+    border-bottom: 1px solid #334155;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .playwright-list li:last-child { border-bottom: none; }
+  .pw-label {
+    font-weight: 700;
+    color: #60a5fa;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    padding-top: 1px;
+  }
+  .pw-desc {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  /* Property testing */
+  .prop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .prop-card {
+    background: rgba(15,23,42,0.6);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .prop-card h4 {
+    font-size: 0.9rem;
+    color: #93c5fd;
+    margin-bottom: 8px;
+  }
+  .prop-card p {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  /* Mutation callout */
+  .mutation-callout {
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.3);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 16px 0;
+  }
+  .mutation-callout .callout-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fbbf24;
+    margin-bottom: 6px;
+  }
+  .mutation-callout .callout-text {
+    font-size: 1rem;
+    color: #fef3c7;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  /* ─── 4. Hallucination Cards ─── */
+  .hall-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+
+  .hall-card {
+    background: #1e293b;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .hall-card-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hall-card-header.danger { background: rgba(239,68,68,0.15); border-bottom: 2px solid #ef4444; }
+  .hall-card-header.warning { background: rgba(249,115,22,0.15); border-bottom: 2px solid #f97316; }
+  .hall-card-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .hall-card-header.danger h3 { color: #fca5a5; }
+  .hall-card-header.warning h3 { color: #fdba74; }
+  .hall-badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .hall-badge.danger { background: rgba(239,68,68,0.25); color: #ef4444; border: 1px solid rgba(239,68,68,0.4); }
+  .hall-badge.warning { background: rgba(249,115,22,0.25); color: #f97316; border: 1px solid rgba(249,115,22,0.4); }
+
+  .hall-card-body {
+    padding: 18px 20px;
+  }
+  .hall-desc {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    margin-bottom: 14px;
+    line-height: 1.55;
+  }
+  .hall-research {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-style: italic;
+    margin-bottom: 12px;
+    line-height: 1.45;
+  }
+
+  .code-block {
+    background: #0d1117;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    overflow-x: auto;
+    border: 1px solid #1e3a5f;
+  }
+  .code-block pre {
+    font-family: "SF Mono", "Fira Code", "Fira Mono", Consolas, "Courier New", monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #a5f3fc;
+    white-space: pre;
+  }
+  .code-comment { color: #4b5563; }
+  .code-string { color: #86efac; }
+  .code-keyword { color: #c084fc; }
+  .code-fn { color: #60a5fa; }
+
+  .hall-fix {
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.25);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 12px;
+  }
+  .hall-fix-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6ee7b7;
+    margin-bottom: 4px;
+  }
+  .hall-fix p {
+    font-size: 0.83rem;
+    color: #a7f3d0;
+    line-height: 1.5;
+  }
+
+  /* ─── 5. References ─── */
+  .refs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+  .refs-col h3 {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #334155;
+  }
+  .ref-item {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #1e293b;
+  }
+  .ref-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .ref-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 3px;
+    line-height: 1.4;
+  }
+  .ref-meta {
+    font-size: 0.77rem;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .ref-link {
+    font-size: 0.77rem;
+    color: #60a5fa;
+    word-break: break-all;
+  }
+
+  /* ─── 6. Footer ─── */
+  .footer {
+    background: #1e293b;
+    border-top: 1px solid #334155;
+    padding: 20px 40px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-top: 40px;
+    border-radius: 8px;
+  }
+
+  /* ─── Utilities ─── */
+  .text-blue { color: #60a5fa; }
+  .text-secondary { color: #94a3b8; }
+  .mt-4 { margin-top: 16px; }
+  .mb-2 { margin-bottom: 8px; }
+
+  /* Section divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, #3b82f6 0%, #1e40af 40%, transparent 100%);
+    margin: 0 0 28px 0;
+  }
+
+  /* ─── Print ─── */
+  @media print {
+    body { background: #fff; color: #111; }
+    .page-wrap { padding: 0 12px 20px; }
+    .hero { background: #1e3a6a; border-bottom-color: #1d4ed8; page-break-after: avoid; }
+    .hero h1 { color: #fff; }
+    .hero .subtitle, .hero .date-tag { color: #cbd5e1; }
+    .qa-card, .landscape-panel, .hall-card { background: #f8fafc; box-shadow: none; border-color: #1d4ed8; page-break-inside: avoid; }
+    .cmp-table thead th, .cmp-table tbody td { color: #111; }
+    .cmp-table tbody tr { border-color: #cbd5e1; }
+    .section-title { color: #0f172a; }
+    .section-subtitle { color: #475569; }
+    .code-block { background: #f1f5f9; border-color: #cbd5e1; }
+    .code-block pre { color: #0369a1; }
+    .pull-quote { border-color: #1d4ed8; background: #eff6ff; }
+    .pull-quote .quote-text { color: #1e3a8a; }
+    .pull-quote .quote-source { color: #475569; }
+    .mutation-callout { background: #fefce8; border-color: #d97706; }
+    .mutation-callout .callout-text { color: #78350f; }
+    .mutation-callout .callout-label { color: #b45309; }
+    .hall-card-header.danger { background: #fee2e2; }
+    .hall-card-header.warning { background: #ffedd5; }
+    .hall-card-header.danger h3 { color: #991b1b; }
+    .hall-card-header.warning h3 { color: #9a3412; }
+    .hall-fix { background: #f0fdf4; border-color: #166534; }
+    .hall-fix p { color: #166534; }
+    .hall-fix-label { color: #166534; }
+    .refs-grid { gap: 16px; }
+    .footer { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
+    .qa-card-stat { background: #dbeafe; color: #1d4ed8; }
+    a { color: #1d4ed8; }
+    .text-blue { color: #1d4ed8; }
+    .refs-col h3 { color: #475569; border-color: #cbd5e1; }
+    .ref-title { color: #0f172a; }
+    .ref-meta { color: #475569; }
+    .qa-card-title { color: #0f172a; }
+    .qa-card-desc { color: #334155; }
+    .landscape-panel h3 { color: #1d4ed8; border-color: #cbd5e1; }
+    .pw-label { color: #1d4ed8; }
+    .pw-desc { color: #334155; }
+    .prop-card { background: #f8fafc; border-color: #cbd5e1; }
+    .prop-card h4 { color: #1d4ed8; }
+    .prop-card p { color: #334155; }
+    .hall-desc { color: #334155; }
+    .hall-research { color: #475569; }
+    .cov-badge { background: #d1fae5; color: #065f46; }
+    .code-comment { color: #6b7280; }
+    .divider { background: #1d4ed8; }
+    .hall-badge.danger { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+    .hall-badge.warning { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 768px) {
+    .card-grid { grid-template-columns: 1fr; }
+    .hall-grid { grid-template-columns: 1fr; }
+    .refs-grid { grid-template-columns: 1fr; }
+    .prop-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.7rem; }
+    .hero { padding: 36px 24px 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     1. HERO HEADER
+════════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="page-wrap" style="padding-bottom:0; margin-bottom:0;">
+    <div class="hero-badge">Full-Day Workshop</div>
+    <h1>AI-Enhanced Quality Assurance in Software Engineering</h1>
+    <p class="subtitle">State of the Art — 2025/2026 Research &amp; Practice</p>
+    <p class="date-tag">Workshop — May 2026</p>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+<!-- ═══════════════════════════════════════════════════════════
+     2. RARIX QA SYSTEM MAP
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="divider"></div>
+  <h2 class="section-title">How a Production AI System Enforces Quality</h2>
+  <p class="section-subtitle">Live examples drawn from the RARIX codebase (rarix repo)</p>
+
+  <div class="card-grid">
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">🧪</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">Hybrid Test Runners</div>
+          <span class="qa-card-stat">Vitest 4.1.6 + node:test — 621 test files</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Vitest for ESM/async modules; node:test for pure functions. Two runners coexist for a reason: each is optimised for a different part of the module graph. Neither is a compromise.</p>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">🛡️</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">TDD Enforcer Hook</div>
+          <span class="qa-card-stat">PreToolUse hook</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Blocks Write/Edit without a matching test file. 5-minute override window for refactors. Test-first is enforced, not optional. Agents cannot write implementation before writing tests.</p>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">🔬</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">Mutation Testing</div>
+          <span class="qa-card-stat">Stryker 9.6.1</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Thresholds: 80 high / 60 low / 50 break. The CI gate is mutation score, not line coverage. A test suite that hits every line but catches no mutations is treated as untested.</p>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">🗄️</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">Anti-Pattern Catalog</div>
+          <span class="qa-card-stat">SQLite-backed</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Each PR fix captures pattern + ripgrep detector regex — pre-commit blocks it forever. Learning loop: bugs caught in review become automated gates for every future PR.</p>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">👁️</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">7-Dimension Code Review</div>
+          <span class="qa-card-stat">Weighted dimensions</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Correctness 25% · Security 20% · Performance 10% · Readability 15% · Maintainability 10% · Test Coverage 10% · Architecture 10%. Each dimension scored independently, evidence-quoted, and aggregated.</p>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">🎭</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">Playwright MCP</div>
+          <span class="qa-card-stat">@playwright/mcp@latest</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Registered as high-priority MCP server. Accessibility tree (not screenshots). 4x more token-efficient than vision models. Works across Chromium, Firefox, and WebKit.</p>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">📊</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">Protocol Compliance Ledger</div>
+          <span class="qa-card-stat">SQLite event log</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Every skill execution scored. Results queryable. Compliance is a metric, not a feeling. Agents cannot self-report compliance — it is recorded externally and auditable.</p>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">🔒</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">PreToolUse Gates</div>
+          <span class="qa-card-stat">43 hook files</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Blocks: dangerous commands, SQL DROP, secrets exposure, cost budget overrun, branch prefix violations, constitution checks. Hooks run before the tool executes — damage prevention, not damage repair.</p>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">📈</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">TDD Compliance Tracker</div>
+          <span class="qa-card-stat">Per-commit metric</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Rule: test-lines ≥ 1/3 src-lines. Tracked per agent per commit. JSON output for dashboards. Non-compliance is visible, trending, and used in agent performance evaluation.</p>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-card-header">
+        <div class="qa-card-icon">🚦</div>
+        <div class="qa-card-meta">
+          <div class="qa-card-title">CI Pipeline</div>
+          <span class="qa-card-stat">5 parallel jobs</span>
+        </div>
+      </div>
+      <p class="qa-card-desc">Lint · Tests (1,252) · Sub-packages (543 hook tests, REQUIRED gate) · Architecture · Semgrep static analysis. All five jobs must pass. Sub-package failures block merge even if top-level tests pass.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     3. TOOL LANDSCAPE
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="divider"></div>
+  <h2 class="section-title">The AI QA Tool Landscape (2025–2026)</h2>
+  <p class="section-subtitle">Benchmarks, comparisons, and key capabilities across major tool categories</p>
+
+  <!-- 3a. AI Unit Test Generation -->
+  <div class="landscape-panel">
+    <h3>3a — AI Unit Test Generation</h3>
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Approach</th>
+          <th>Coverage Achieved</th>
+          <th>Speed</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tool-name">Diffblue Cover</td>
+          <td>Reinforcement Learning (not LLM)</td>
+          <td><span class="cov-badge">50–69%</span></td>
+          <td>20× faster than manual</td>
+          <td>Java-only; most impressive independent benchmarks</td>
+        </tr>
+        <tr>
+          <td class="tool-name">GitHub Copilot</td>
+          <td>LLM (GPT-4o)</td>
+          <td><span class="cov-badge">5–29%</span></td>
+          <td>Moderate</td>
+          <td>General-purpose; quality varies significantly by prompt</td>
+        </tr>
+        <tr>
+          <td class="tool-name">TestPilot (GitHub Labs)</td>
+          <td>LLM</td>
+          <td><span class="cov-badge">47.1% median passing</span></td>
+          <td>Fast</td>
+          <td>JS/TS only; studied across 25 npm packages</td>
+        </tr>
+        <tr>
+          <td class="tool-name">Claude Code</td>
+          <td>LLM (Sonnet / Opus)</td>
+          <td>Not benchmarked uniformly</td>
+          <td>Fast</td>
+          <td>23 tests in 1–2 min with Playwright Agents in real-world trials</td>
+        </tr>
+        <tr>
+          <td class="tool-name">Qodo (CodiumAI)</td>
+          <td>Multi-agent LLM</td>
+          <td>High (untested independently)</td>
+          <td>Fast</td>
+          <td>Now part of broader Qodo platform; multi-agent architecture</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3b. AI Code Review -->
+  <div class="landscape-panel">
+    <h3>3b — AI Code Review</h3>
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>F1 Score</th>
+          <th>Bug Detection</th>
+          <th>Cost</th>
+          <th>Strength</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tool-name">Qodo 2.0</td>
+          <td><span class="cov-badge">60.1% F1</span></td>
+          <td>42–48% runtime bugs</td>
+          <td>~$19/dev/mo</td>
+          <td>Multi-agent; cross-repo tracking; best independent F1 score</td>
+        </tr>
+        <tr>
+          <td class="tool-name">CodeRabbit</td>
+          <td><span class="cov-badge">46% accuracy</span></td>
+          <td>46%</td>
+          <td>$24/dev/mo</td>
+          <td>Most comments per PR; AST + SAST integration</td>
+        </tr>
+        <tr>
+          <td class="tool-name">GitHub Copilot Review</td>
+          <td><span class="cov-badge">44.5% F1</span></td>
+          <td>Found 0/N security vulns in study</td>
+          <td>Bundled</td>
+          <td>60M+ reviews shipped; purpose-built tools outperform on security</td>
+        </tr>
+        <tr>
+          <td class="tool-name">Sourcery</td>
+          <td>Rules-based</td>
+          <td>Not benchmarked</td>
+          <td>OSS / paid</td>
+          <td>Deep refactoring suggestions; Python, JS, TS</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3c. Playwright + AI -->
+  <div class="landscape-panel">
+    <h3>3c — Playwright + AI</h3>
+    <ul class="playwright-list">
+      <li>
+        <span class="pw-label">Playwright MCP<br><span style="color:#64748b;font-weight:400;font-size:0.75rem;">March 2025</span></span>
+        <span class="pw-desc">Uses accessibility tree, not screenshots. 4× more token-efficient than vision models (114K vs 27K tokens via CLI). Works across Chromium, Firefox, and WebKit. Structured output enables reliable agent interaction.</span>
+      </li>
+      <li>
+        <span class="pw-label">Playwright 1.56</span>
+        <span class="pw-desc">AI-driven test generation, self-healing tests, no static locators needed. Tests repair themselves when UI structure changes without breaking the test intent.</span>
+      </li>
+      <li>
+        <span class="pw-label">Claude Code +<br>Playwright Agents</span>
+        <span class="pw-desc">Planner agent → Generator agent → Healer agent. Pipeline architecture. Generates 23 passing tests in 1–2 minutes in real-world trials. Each agent has a single responsibility in the pipeline.</span>
+      </li>
+      <li>
+        <span class="pw-label">IDE Integration</span>
+        <span class="pw-desc">VS Code, Cursor, Windsurf, and Claude Desktop all integrate Playwright MCP natively. Enables agentic browser control directly inside the development environment.</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 3d. TDD + AI Research -->
+  <div class="landscape-panel">
+    <h3>3d — TDD + AI Research</h3>
+
+    <div class="pull-quote">
+      <p class="quote-text">"DORA 2025: Teams adopting TDD reduced defect density by 40–90%. AI amplifies existing good practices — it does not substitute for them."</p>
+      <p class="quote-source">— Google Cloud / DORA 2025</p>
+    </div>
+
+    <div class="pull-quote">
+      <p class="quote-text">"Test-Driven Generation (TDG): Integrating AI at every stage of the TDD cycle — write test first, prompt AI to implement, iterate. The human defines intent; the machine explores solution space."</p>
+      <p class="quote-source">— Chanwit Kaewkasi, 2025</p>
+    </div>
+
+    <div class="pull-quote">
+      <p class="quote-text">"TDD and pair programming are the perfect companions for GitHub Copilot. All AI output requires human assessment. The discipline of TDD constrains what the model can hallucinate."</p>
+      <p class="quote-source">— Thoughtworks</p>
+    </div>
+  </div>
+
+  <!-- 3e. Property-Based Testing -->
+  <div class="landscape-panel">
+    <h3>3e — Property-Based Testing</h3>
+
+    <div class="prop-grid" style="margin-bottom: 16px;">
+      <div class="prop-card">
+        <h4>fast-check</h4>
+        <p>QuickCheck for JavaScript/TypeScript. Works with Vitest and Jest. Finds shrinkable counterexamples — when a failure is found, it automatically minimises the failing input to the simplest possible case. Source: fast-check.dev</p>
+      </div>
+      <div class="prop-card">
+        <h4>Hypothesis (Python)</h4>
+        <p>Gold standard for property-based testing. 2025 NeurIPS study: Claude autonomously discovered real bugs in <strong style="color:#e2e8f0;">numpy</strong> and <strong style="color:#e2e8f0;">pandas</strong> by writing Hypothesis tests derived from type annotations and docstrings alone.</p>
+      </div>
+    </div>
+
+    <div class="pull-quote">
+      <p class="quote-text"><strong style="color:#e2e8f0;">Key concept:</strong> Describe invariants ("total after discount ≥ 0"), let the framework generate thousands of inputs automatically. You define what must always be true; the framework tries to prove you wrong.</p>
+      <p class="quote-source">— Property-Based Testing core principle</p>
+    </div>
+  </div>
+
+  <!-- 3f. Mutation Testing -->
+  <div class="landscape-panel">
+    <h3>3f — Mutation Testing</h3>
+
+    <p style="font-size:0.875rem; color:#94a3b8; margin-bottom:14px;">
+      <strong class="text-blue">Stryker (JS/TS):</strong> 5,000 mutants/hour. Thresholds: 80% high / 60% low / 50% break (CI fail). HTML reports with per-mutant drill-down. Integrates with Vitest and Jest.
+    </p>
+
+    <div class="mutation-callout">
+      <div class="callout-label">Key Insight</div>
+      <div class="callout-text">"100% coverage + 4% mutation score = 96% of bugs undetected.<br>Coverage tells you which lines ran. Mutation testing tells you if your tests would actually catch a bug."</div>
+    </div>
+
+    <p style="font-size:0.875rem; color:#94a3b8; margin-top:14px;">
+      <strong class="text-blue">AI + Stryker (2025):</strong> Outsight AI case study — feeding surviving mutants back to Cursor improved mutation score from 70% to 78%. Meta presented LLM + mutation testing work at FSE 2025, showing LLMs can generate targeted tests for surviving mutants more effectively than random test augmentation.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     4. HALLUCINATION TAXONOMY
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="divider"></div>
+  <h2 class="section-title">When AI Tests Lie: 4 Failure Modes</h2>
+  <p class="section-subtitle">Understanding how LLM-generated tests fail — and what to do about each pattern</p>
+
+  <div class="hall-grid">
+
+    <!-- Card 1: Existence-Only Assertions -->
+    <div class="hall-card">
+      <div class="hall-card-header danger">
+        <h3>Existence-Only Assertions</h3>
+        <span class="hall-badge danger">Danger</span>
+      </div>
+      <div class="hall-card-body">
+        <p class="hall-desc">The test checks that a field exists but never validates its value. Passes even if the value is wrong, zero, null, or completely different from the expected result. The assertion gives false confidence.</p>
+        <div class="code-block">
+          <pre><span class="code-fn">it</span>(<span class="code-string">'returns product'</span>, () => {
+  <span class="code-keyword">const</span> p = <span class="code-fn">getProduct</span>(1);
+  <span class="code-fn">expect</span>(p).<span class="code-fn">toBeDefined</span>();        <span class="code-comment">// ← only checks not undefined</span>
+  <span class="code-fn">expect</span>(p.price).<span class="code-fn">toBeDefined</span>(); <span class="code-comment">// ← never checks p.price &gt; 0</span>
+});</pre>
+        </div>
+        <div class="hall-fix">
+          <div class="hall-fix-label">Fix</div>
+          <p>Assert specific values: <code style="color:#6ee7b7;background:#0d1117;padding:1px 5px;border-radius:3px;font-size:0.8rem;">expect(p.price).toBe(29.99)</code> or at minimum <code style="color:#6ee7b7;background:#0d1117;padding:1px 5px;border-radius:3px;font-size:0.8rem;">expect(p.price).toBeGreaterThan(0)</code>. If you don't know the exact expected value, that's a design signal — define it first.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Over-Mocking -->
+    <div class="hall-card">
+      <div class="hall-card-header danger">
+        <h3>Over-Mocking</h3>
+        <span class="hall-badge danger">Danger</span>
+      </div>
+      <div class="hall-card-body">
+        <p class="hall-desc">AI aggressively mocks dependencies and then asserts the mock's own return values. The test verifies that the mock works as configured — not that the code under test produces the right result. Real behaviour is never exercised.</p>
+        <div class="code-block">
+          <pre><span class="code-fn">it</span>(<span class="code-string">'calculates total'</span>, () => {
+  <span class="code-keyword">const</span> mockCart = {
+    items: [{ price: 10 }],
+    total: <span class="code-fn">vi.fn</span>().<span class="code-fn">mockReturnValue</span>(10)
+  };
+  <span class="code-comment">// ← testing the mock, not the code</span>
+  <span class="code-fn">expect</span>(mockCart.<span class="code-fn">total</span>()).<span class="code-fn">toBe</span>(10);
+});</pre>
+        </div>
+        <div class="hall-fix">
+          <div class="hall-fix-label">Fix</div>
+          <p>Test real implementations. Only mock at true system boundaries: network calls, database I/O, external APIs, and time. If your unit has no I/O, it should have no mocks.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Coverage Without Quality -->
+    <div class="hall-card">
+      <div class="hall-card-header warning">
+        <h3>Coverage Without Quality</h3>
+        <span class="hall-badge warning">Warning</span>
+      </div>
+      <div class="hall-card-body">
+        <p class="hall-desc">AI optimises for hitting every line and branch. Achieves 85%+ line coverage. Mutation score: 20%. 80% of potential bugs remain undetected by a test suite that looks comprehensive on paper.</p>
+        <p class="hall-research">"LLM-generated tests achieve only 20.32% mutation scores on complex real-world functions, even when line coverage exceeds 80%." — Outsight AI, 2025</p>
+        <div class="code-block">
+          <pre><span class="code-comment">// Coverage tool reports: 92% ✓</span>
+<span class="code-comment">// Stryker reports: 18% mutation score ✗</span>
+<span class="code-comment">// 82% of bugs would go undetected</span>
+<span class="code-fn">it</span>(<span class="code-string">'runs the branch'</span>, () => {
+  <span class="code-fn">applyDiscount</span>(100, 0.1);  <span class="code-comment">// ← no assertion</span>
+});</pre>
+        </div>
+        <div class="hall-fix">
+          <div class="hall-fix-label">Fix</div>
+          <p>Always run mutation testing on AI-generated test suites. Target 70%+ mutation score for critical paths. Coverage metrics are necessary but not sufficient — treat them as a floor, not a ceiling.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Oracle Failures -->
+    <div class="hall-card">
+      <div class="hall-card-header warning">
+        <h3>Oracle Failures</h3>
+        <span class="hall-badge warning">Warning</span>
+      </div>
+      <div class="hall-card-body">
+        <p class="hall-desc">AI validates "what your code does" not "what it should do." When the implementation contains a bug, AI observes the buggy output, treats it as correct, and writes a test that documents the bug as expected behaviour.</p>
+        <p class="hall-research">"Prompting strategy matters more than model choice for oracle quality. Models shown working code before writing tests document bugs as features." — ASE 2025</p>
+        <div class="code-block">
+          <pre><span class="code-comment">// Implementation has off-by-one error</span>
+<span class="code-comment">// Correct result should be 90.00</span>
+<span class="code-fn">it</span>(<span class="code-string">'applies 10% discount'</span>, () => {
+  <span class="code-comment">// AI observed buggy output, locked it in</span>
+  <span class="code-fn">expect</span>(<span class="code-fn">applyDiscount</span>(100, 10)).<span class="code-fn">toBe</span>(91);
+});</pre>
+        </div>
+        <div class="hall-fix">
+          <div class="hall-fix-label">Fix</div>
+          <p>Write the test <strong>before</strong> the implementation (TDD). When AI writes tests post-implementation, always manually verify expected values against the specification, not against the code output. Specification must be the oracle, not the implementation.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     5. SOURCES & REFERENCES
+════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="divider"></div>
+  <h2 class="section-title">Sources &amp; Further Reading</h2>
+  <p class="section-subtitle">Research papers, tool benchmarks, and industry reports cited in this workshop</p>
+
+  <div class="refs-grid">
+
+    <div class="refs-col">
+      <h3>Research Papers</h3>
+
+      <div class="ref-item">
+        <div class="ref-title">Improving the Quality of GitHub Copilot Generated Unit Tests</div>
+        <div class="ref-meta">Springer 2025</div>
+        <a class="ref-link" href="https://link.springer.com/chapter/10.1007/978-3-032-24216-7_8" target="_blank" rel="noopener">link.springer.com/chapter/10.1007/978-3-032-24216-7_8</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">Using GitHub Copilot for Test Generation in Python: An Empirical Study</div>
+        <div class="ref-meta">IEEE 2025</div>
+        <a class="ref-link" href="https://ieeexplore.ieee.org/document/10556390/" target="_blank" rel="noopener">ieeexplore.ieee.org/document/10556390/</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">Agentic Property-Based Testing</div>
+        <div class="ref-meta">NeurIPS 2025</div>
+        <a class="ref-link" href="https://arxiv.org/html/2510.09907v1" target="_blank" rel="noopener">arxiv.org/html/2510.09907v1</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">Understanding LLM-Driven Test Oracle Generation</div>
+        <div class="ref-meta">arxiv 2025</div>
+        <a class="ref-link" href="https://arxiv.org/pdf/2601.05542" target="_blank" rel="noopener">arxiv.org/pdf/2601.05542</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">Do LLMs Generate Useful Test Oracles?</div>
+        <div class="ref-meta">ASE 2025</div>
+        <a class="ref-link" href="https://www.lucadigrazia.com/papers/ase2025.pdf" target="_blank" rel="noopener">lucadigrazia.com/papers/ase2025.pdf</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">TDAD: Test-Driven Agentic Development</div>
+        <div class="ref-meta">arxiv 2025</div>
+        <a class="ref-link" href="https://arxiv.org/pdf/2603.17973" target="_blank" rel="noopener">arxiv.org/pdf/2603.17973</a>
+      </div>
+    </div>
+
+    <div class="refs-col">
+      <h3>Tools &amp; Benchmarks</h3>
+
+      <div class="ref-item">
+        <div class="ref-title">Diffblue Cover vs AI Coding Assistants Benchmark 2025</div>
+        <div class="ref-meta">Diffblue</div>
+        <a class="ref-link" href="https://www.diffblue.com/resources/diffblue-cover-vs-ai-coding-assistants-benchmark-2025/" target="_blank" rel="noopener">diffblue.com/resources/diffblue-cover-vs-ai-coding-assistants-benchmark-2025/</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">Qodo vs CodeRabbit: AI Code Review Tools Compared 2026</div>
+        <div class="ref-meta">dev.to</div>
+        <a class="ref-link" href="https://dev.to/rahulxsingh/qodo-vs-coderabbit-ai-code-review-tools-compared-2026-kdp" target="_blank" rel="noopener">dev.to/rahulxsingh/qodo-vs-coderabbit-ai-code-review-tools-compared-2026-kdp</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">The Complete Playwright E2E Story — Tools, AI, and Real-World Workflows</div>
+        <div class="ref-meta">Microsoft Developer Blog</div>
+        <a class="ref-link" href="https://developer.microsoft.com/blog/the-complete-playwright-end-to-end-story-tools-ai-and-real-world-workflows" target="_blank" rel="noopener">developer.microsoft.com/blog/the-complete-playwright-end-to-end-story-tools-ai-and-real-world-workflows</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">AI Test Coverage Analysis</div>
+        <div class="ref-meta">BrowserStack</div>
+        <a class="ref-link" href="https://www.browserstack.com/guide/ai-test-case-management" target="_blank" rel="noopener">browserstack.com/guide/ai-test-case-management</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">The Truth About AI-Generated Tests — Why Coverage Lies and Mutations Don't</div>
+        <div class="ref-meta">Outsight AI</div>
+        <a class="ref-link" href="https://medium.com/@outsightai/the-truth-about-ai-generated-unit-tests-why-coverage-lies-and-mutations-dont-fcd5b5f6a267" target="_blank" rel="noopener">medium.com/@outsightai/the-truth-about-ai-generated-unit-tests-why-coverage-lies-and-mutations-dont-fcd5b5f6a267</a>
+      </div>
+
+      <h3 style="margin-top: 22px;">DORA &amp; Industry Reports</h3>
+
+      <div class="ref-item">
+        <div class="ref-title">DORA 2025: How TDD Amplifies AI Success</div>
+        <div class="ref-meta">Google Cloud</div>
+        <a class="ref-link" href="https://cloud.google.com/discover/how-test-driven-development-amplifies-ai-success" target="_blank" rel="noopener">cloud.google.com/discover/how-test-driven-development-amplifies-ai-success</a>
+      </div>
+
+      <div class="ref-item">
+        <div class="ref-title">TDD and Pair Programming: Perfect Companions for Copilot</div>
+        <div class="ref-meta">Thoughtworks</div>
+        <a class="ref-link" href="https://www.thoughtworks.com/insights/blog/generative-ai/tdd-and-pair-programming-the-perfect-companions-for-copilot" target="_blank" rel="noopener">thoughtworks.com/insights/blog/generative-ai/tdd-and-pair-programming-the-perfect-companions-for-copilot</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     6. FOOTER
+════════════════════════════════════════════════════════════ -->
+<div class="footer">
+  Prepared for AI-Enhanced QA Workshop &middot; May 2026 &middot; Based on RARIX production codebase analysis + 2025/2026 research literature
+</div>
+
+</div><!-- /page-wrap -->
+</body>
+</html>
